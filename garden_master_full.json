@@ -1175,6 +1175,17 @@
           },
           "notes": "In DC, brussels are typically a fall crop transplanted mid-summer."
         },
+        "fall": {
+          "indoor_start_window": {
+            "start": "2026-05-15",
+            "end": "2026-06-15"
+          },
+          "transplant_window": {
+            "start": "2026-07-01",
+            "end": "2026-08-01"
+          },
+          "notes": "Fall crop window based on primary guidance; adjust as needed."
+        },
         "seed_depth_in": 0.25,
         "germination": {
           "temp_F": "60–80",

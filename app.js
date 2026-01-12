@@ -180,6 +180,14 @@ function getPlantingWindowStart(plant, method, season) {
       return planting[season].transplant_window.start;
     }
   }
+  if (planting.primary) {
+    if (method === "direct_sow" && planting.primary.direct_sow_window?.start) {
+      return planting.primary.direct_sow_window.start;
+    }
+    if (method === "transplant" && planting.primary.transplant_window?.start) {
+      return planting.primary.transplant_window.start;
+    }
+  }
   const fallbackKey = `${season}_${method}_window`;
   if (planting[fallbackKey]?.start) return planting[fallbackKey].start;
   const simpleKey = `${season}_direct_sow_window`;
@@ -208,7 +216,53 @@ function getBasePlanAnchor(plant, method) {
 }
 
 function buildScheduleForPlan(plant, method, season, cycleIndex, extraShiftDays = 0, scheduleKey = "") {
-  const plan = plant.task_plan || [];
+  const plan = [...(plant.task_plan || [])];
+  const planting = plant.planting || {};
+  const syntheticTasks = [];
+  const hasTemplate = templateName => plan.some(task => task.template === templateName);
+  const transplantWindow = getPlantingWindowStart(plant, "transplant", season)
+    || planting.primary?.transplant_window?.start
+    || null;
+  const sowWindow = getPlantingWindowStart(plant, "direct_sow", season)
+    || planting.direct_sow_window?.start
+    || null;
+  const indoorWindow = planting.indoor_start_optional?.start
+    || planting.primary?.indoor_start_window?.start
+    || null;
+
+  if (method === "transplant") {
+    if (!hasTemplate("transplant") && transplantWindow) {
+      syntheticTasks.push({
+        template: "transplant",
+        date_target: transplantWindow,
+        spacing_in: planting.spacing_in?.in_row || planting.spacing_in?.clump,
+        notes: planting.notes,
+      });
+    }
+    if (!hasTemplate("seed_start_indoor") && indoorWindow) {
+      syntheticTasks.push({
+        template: "seed_start_indoor",
+        date_target: indoorWindow,
+        depth_in: planting.seed_depth_in,
+        notes: planting.indoor_start_optional?.notes || planting.primary?.notes,
+      });
+    }
+  }
+
+  if (method === "direct_sow") {
+    if (!hasTemplate("direct_sow") && sowWindow) {
+      syntheticTasks.push({
+        template: "direct_sow",
+        date_target: sowWindow,
+        depth_in: planting.seed_depth_in,
+        spacing_in: planting.spacing_in?.in_row || planting.spacing_in?.clump,
+        row_spacing_in: planting.spacing_in?.row,
+      });
+    }
+  }
+  if (syntheticTasks.length) {
+    plan.push(...syntheticTasks);
+  }
   const baseAnchor = getBasePlanAnchor(plant, method);
   const seasonAnchor = getPlantingWindowStart(plant, method, season) || baseAnchor;
   const baseDate = parseDate(baseAnchor);
@@ -1108,49 +1162,53 @@ function renderCalendar(data, state, main) {
       const method = taskList[0]?.method;
       const season = taskList[0]?.season || "spring";
 
-      let fallbackTransplant = transplant;
+      const indoorWindow = parseDate(plant?.planting?.indoor_start_optional?.start)
+        || parseDate(plant?.planting?.primary?.indoor_start_window?.start);
+      const transplantWindow = parseDate(getPlantingWindowStart(plant, "transplant", season))
+        || parseDate(plant?.planting?.primary?.transplant_window?.start);
+      const sowWindow = parseDate(getPlantingWindowStart(plant, "direct_sow", season))
+        || parseDate(plant?.planting?.direct_sow_window?.start);
+
+      let fallbackTransplant = transplant || transplantWindow;
       if (!fallbackTransplant && seedStart) {
-        const windowStart = plant ? parseDate(getPlantingWindowStart(plant, "transplant", season)) : null;
-        fallbackTransplant = windowStart || addDays(seedStart, 28);
+        fallbackTransplant = addDays(seedStart, 28);
       }
 
-      let fallbackSow = directSow;
-      if (!fallbackSow && plant && method === "direct_sow") {
-        fallbackSow = parseDate(getPlantingWindowStart(plant, "direct_sow", season));
-      }
+      let fallbackSow = directSow || sowWindow;
+      const indoorStart = seedStart || indoorWindow || (fallbackTransplant ? addDays(fallbackTransplant, -28) : null);
 
-      if (seedStart && fallbackTransplant) {
-        plantStages.push({
-          key: "indoors",
-          start: clampDate(seedStart, year),
-          end: clampDate(fallbackTransplant, year),
-        });
-      } else if (!seedStart && !fallbackSow && fallbackTransplant) {
-        const indoorStart = addDays(fallbackTransplant, -28);
+      if (indoorStart && fallbackTransplant) {
         plantStages.push({
           key: "indoors",
           start: clampDate(indoorStart, year),
           end: clampDate(fallbackTransplant, year),
         });
+      } else if (!indoorStart && !fallbackSow && fallbackTransplant) {
+        const derivedStart = addDays(fallbackTransplant, -28);
+        plantStages.push({
+          key: "indoors",
+          start: clampDate(derivedStart, year),
+          end: clampDate(fallbackTransplant, year),
+        });
       }
 
-      if (fallbackTransplant) {
+      if (fallbackTransplant && (method === "transplant" || !fallbackSow)) {
         plantStages.push({
           key: "transplant",
           start: clampDate(fallbackTransplant, year),
-          end: clampDate(addDays(fallbackTransplant, 7), year),
+          end: clampDate(fallbackTransplant, year),
         });
       }
 
-      if (fallbackSow) {
+      if (fallbackSow && (method === "direct_sow" || !fallbackTransplant)) {
         plantStages.push({
           key: "sow",
           start: clampDate(fallbackSow, year),
-          end: clampDate(addDays(fallbackSow, 7), year),
+          end: clampDate(fallbackSow, year),
         });
       }
 
-      const growStart = fallbackTransplant || fallbackSow;
+      const growStart = (method === "transplant" ? fallbackTransplant : null) || (method === "direct_sow" ? fallbackSow : null) || fallbackTransplant || fallbackSow;
       if (growStart) {
         const growEnd = harvestStart || yearEnd;
         if (growEnd >= growStart) {
@@ -1163,8 +1221,9 @@ function renderCalendar(data, state, main) {
       }
 
       if (harvestStart) {
-        const harvestSpan = getHarvestSpanDays(data?.plants?.find(p => p.name === plantName));
-        const endDate = harvestEnd || addDays(harvestStart, harvestSpan);
+        const harvestSpan = getHarvestSpanDays(plant);
+        const spanEnd = addDays(harvestStart, harvestSpan);
+        const endDate = harvestEnd && harvestEnd > spanEnd ? harvestEnd : spanEnd;
         plantStages.push({
           key: "harvest",
           start: clampDate(harvestStart, year),
