@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#0B3D2E"/>
+  <path d="M88 36c-18 2-34 12-44 26-10 14-14 30-12 44 14 2 30-2 44-12 14-10 24-26 26-44z" fill="#3BB273"/>
+  <path d="M40 92c10-10 22-20 40-36" fill="none" stroke="#A7F3D0" stroke-width="6" stroke-linecap="round"/>
+  <path d="M56 86c-2-10-2-18 2-28" fill="none" stroke="#A7F3D0" stroke-width="4" stroke-linecap="round" opacity="0.9"/>
+  <text x="64" y="118" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="white" opacity="0.95">Runaway</text>
+</svg>

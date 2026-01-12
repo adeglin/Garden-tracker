@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#1F2A44"/>
+  <circle cx="64" cy="70" r="22" fill="#F43F5E"/><path d="M64 48c-10-8-18-10-26-10 6 10 12 16 26 18 14-2 20-8 26-18-8 0-16 2-26 10z" fill="#22C55E"/>
+  <text x="64" y="118" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="white" opacity="0.95">Purple</text>
+</svg>

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#0B3D2E"/>
+  <rect x="40" y="44" width="48" height="64" rx="20" fill="#22C55E"/><circle cx="54" cy="64" r="3" fill="#A3E635"/><circle cx="74" cy="74" r="3" fill="#A3E635"/><circle cx="58" cy="88" r="3" fill="#A3E635"/><circle cx="76" cy="94" r="3" fill="#A3E635"/>
+  <text x="64" y="118" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="white" opacity="0.95">Mini</text>
+</svg>
