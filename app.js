@@ -1010,20 +1010,7 @@ function renderCalendar(data, state, main) {
     });
   };
 
-  const monthLabels = [
-    ["Jan 1-15", "Jan 16-31"],
-    ["Feb 1-15", "Feb 16-29"],
-    ["Mar 1-15", "Mar 16-31"],
-    ["Apr 1-15", "Apr 16-30"],
-    ["May 1-15", "May 16-31"],
-    ["Jun 1-15", "Jun 16-30"],
-    ["Jul 1-15", "Jul 16-31"],
-    ["Aug 1-15", "Aug 16-31"],
-    ["Sep 1-15", "Sep 16-30"],
-    ["Oct 1-15", "Oct 16-31"],
-    ["Nov 1-15", "Nov 16-30"],
-    ["Dec 1-15", "Dec 16-31"],
-  ];
+  const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
   const clampDate = (date, year) => {
     const start = new Date(year, 0, 1);
@@ -1049,6 +1036,15 @@ function renderCalendar(data, state, main) {
         slots[idx] = stageKey;
       }
     }
+  };
+
+  const getHarvestSpanDays = plant => {
+    const name = plant?.name?.toLowerCase() || "";
+    if (name.includes("tomato")) return 90;
+    if (name.includes("pepper") || name.includes("cucumber") || name.includes("eggplant")) return 75;
+    const frequency = plant?.harvest_and_use?.frequency || "";
+    if (/weeks|side shoots|multiple/i.test(frequency)) return 60;
+    return 30;
   };
 
   const buildStagesForTasks = (tasks, year) => {
@@ -1082,8 +1078,6 @@ function renderCalendar(data, state, main) {
       const harvestDates = (byTemplate.harvest || []).map(t => t.dt).filter(Boolean).sort((a, b) => a - b);
       const harvestStart = harvestDates[0] || null;
       const harvestEnd = harvestDates.length ? harvestDates[harvestDates.length - 1] : null;
-
-      const yearStart = new Date(year, 0, 1);
       const yearEnd = new Date(year, 11, 31);
       const plantStages = [];
 
@@ -1124,7 +1118,8 @@ function renderCalendar(data, state, main) {
       }
 
       if (harvestStart) {
-        const endDate = harvestEnd || addDays(harvestStart, 14);
+        const harvestSpan = getHarvestSpanDays(data?.plants?.find(p => p.name === plantName));
+        const endDate = harvestEnd || addDays(harvestStart, harvestSpan);
         plantStages.push({
           key: "harvest",
           start: clampDate(harvestStart, year),
@@ -1158,8 +1153,12 @@ function renderCalendar(data, state, main) {
     const matrix = el("div", "cal-grid");
     const header = el("div", "cal-header cal-row");
     header.appendChild(el("div", "cal-cell cal-label", "Plant"));
-    monthLabels.flat().forEach(label => {
-      header.appendChild(el("div", "cal-cell cal-label", label));
+    monthNames.forEach((label, index) => {
+      const cell = el("div", "cal-cell cal-label cal-month");
+      if (index % 2 === 1) cell.classList.add("month-alt");
+      cell.style.gridColumn = "span 2";
+      cell.textContent = label;
+      header.appendChild(cell);
     });
     matrix.appendChild(header);
 
@@ -1171,8 +1170,11 @@ function renderCalendar(data, state, main) {
       stages.forEach(stage => {
         fillSlots(slots, stage.start, stage.end, stage.key);
       });
-      slots.forEach(stageKey => {
+      slots.forEach((stageKey, idx) => {
         const cell = el("div", "cal-cell cal-slot");
+        if (Math.floor(idx / 2) % 2 === 1) {
+          cell.classList.add("month-alt");
+        }
         if (stageKey) {
           const stage = stageConfig.find(item => item.key === stageKey);
           const block = el("div", "cal-stage");
