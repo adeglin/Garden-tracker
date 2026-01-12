@@ -1112,7 +1112,7 @@ function renderCalendar(data, state, main) {
     }
 
     const matrix = el("div", "cal-grid");
-    const header = el("div", "cal-header cal-grid");
+    const header = el("div", "cal-header cal-row");
     header.appendChild(el("div", "cal-cell cal-label", "Plant"));
     monthLabels.flat().forEach(label => {
       header.appendChild(el("div", "cal-cell cal-label", label));
@@ -1120,7 +1120,7 @@ function renderCalendar(data, state, main) {
     matrix.appendChild(header);
 
     (data.plants || []).forEach(plant => {
-      const row = el("div", "cal-grid");
+      const row = el("div", "cal-row");
       row.appendChild(el("div", "cal-cell cal-label", plant.name));
       const slots = Array(24).fill(null);
       const stages = stageMap.get(plant.name) || [];
