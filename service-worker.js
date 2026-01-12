@@ -1,20 +1,12 @@
-// Garden Tracker Service Worker (robust)
-// - Does NOT use cache.addAll (which fails if any one asset 404s)
-// - Caches core assets individually
-// - Bumps cache name to force updates
+const CACHE_NAME = "garden-tracker-v14";
 
-const CACHE_NAME = "garden-tracker-v13";
-
-const CORE_ASSETS = [
+const CORE = [
   "./",
   "./index.html",
   "./styles.css",
   "./app.js",
   "./manifest.json",
-  "./garden_master_full.json"
-  // Add icons here ONLY if they exist at these paths
-  // "./icons/icon-192.png",
-  // "./icons/icon-512.png",
+  "./garden_master_full.json",
 ];
 
 self.addEventListener("install", (event) => {
@@ -22,7 +14,7 @@ self.addEventListener("install", (event) => {
     const cache = await caches.open(CACHE_NAME);
 
     const results = await Promise.allSettled(
-      CORE_ASSETS.map(async (url) => {
+      CORE.map(async (url) => {
         const req = new Request(url, { cache: "reload" });
         const res = await fetch(req);
         if (!res.ok) throw new Error(`${url} -> ${res.status}`);
@@ -30,9 +22,8 @@ self.addEventListener("install", (event) => {
       })
     );
 
-    // If absolutely nothing cached, fail install (indicates real hosting issue)
-    const okCount = results.filter(r => r.status === "fulfilled").length;
-    if (okCount === 0) throw new Error("SW install failed: no core assets cached.");
+    const ok = results.filter(r => r.status === "fulfilled").length;
+    if (ok === 0) throw new Error("SW install failed: no core assets cached.");
 
     self.skipWaiting();
   })());
