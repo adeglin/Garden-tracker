@@ -1,0 +1,6 @@
+{
+  "name": "Garden Tracker",
+  "short_name": "GardenTracker",
+  "start_url": ".",
+  "display": "standalone"
+}
