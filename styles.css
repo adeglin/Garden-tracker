@@ -98,8 +98,9 @@ body{
   justify-content:space-between;
   gap:10px;
 }
-.row-title{font-weight:700; font-size:14px}
-.row-meta{font-size:12px; color:var(--muted); margin-top:3px}
+.row-top .toggle{margin-left: auto}
+.row-title{font-weight:700; font-size:15px}
+.row-meta{font-size:13px; color:var(--muted); margin-top:3px}
 .row-actions{display:flex; align-items:center; gap:10px}
 .badge{
   font-size:11px;
@@ -136,10 +137,10 @@ body{
 }
 .input::placeholder{color: rgba(169,179,207,0.7)}
 
-.toggle{display:flex; align-items:center; gap:8px; font-size:12px; color: var(--muted)}
+.toggle{display:flex; align-items:center; gap:8px; font-size:13px; color: var(--muted)}
 .toggle input{transform: scale(1.1)}
 
-.muted{color:var(--muted); font-size: 13px; line-height:1.35}
+.muted{color:var(--muted); font-size: 14px; line-height:1.45}
 .label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px}
 .help{margin-top:8px; color:var(--muted); font-size:12px}
 
@@ -165,6 +166,14 @@ body{
 .detail .kv{display:grid; grid-template-columns: 140px 1fr; gap: 10px; margin: 6px 0; font-size: 13px}
 .detail .kv div:nth-child(odd){color: var(--muted)}
 .detail .note{border-left: 3px solid rgba(96,165,250,0.5); padding-left: 10px; margin-top: 10px; color: var(--muted)}
+.detail li{display:flex; align-items:center; gap:8px; margin-bottom:4px}
+.pest-thumb{
+  width:34px;
+  height:34px;
+  object-fit:cover;
+  border-radius:8px;
+  border:1px solid var(--border);
+}
 
 hr.sep{border:none; border-top:1px solid var(--border); margin: 10px 0}
 
@@ -173,6 +182,35 @@ hr.sep{border:none; border-top:1px solid var(--border); margin: 10px 0}
   text-align:center;
 }
 .small{font-size:12px}
+
+.task-row{cursor:pointer}
+.task-row:focus{outline:2px solid rgba(96,165,250,0.5); outline-offset:2px}
+.task-row.completed{opacity:0.65}
+.task-row.completed .row-title{text-decoration:line-through}
+.row-details{
+  display:none;
+  margin-top:10px;
+  padding-top:10px;
+  border-top:1px solid var(--border);
+}
+.task-row.expanded .row-details{display:block}
+.detail-grid{
+  display:grid;
+  grid-template-columns: 120px 1fr;
+  gap:8px 12px;
+  margin-bottom:10px;
+}
+.row-controls{
+  display:grid;
+  grid-template-columns: 120px 1fr;
+  gap:8px 12px;
+  align-items:center;
+}
+.row-controls .input{
+  width:100%;
+  max-width:100%;
+}
+.row-controls textarea{resize:vertical; min-height:72px}
 
 
 .plant-icon{
@@ -239,6 +277,77 @@ hr.sep{border:none; border-top:1px solid var(--border); margin: 10px 0}
   align-items:center;
   gap:10px;
 }
+
+.legend{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px 12px;
+  margin-top:8px;
+}
+.legend-item{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:12px;
+  color:var(--muted);
+}
+.legend-swatch{
+  width:14px;
+  height:14px;
+  border-radius:4px;
+  border:1px solid rgba(255,255,255,0.2);
+}
+
+.cal-grid{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.cal-row{
+  display:grid;
+  grid-template-columns: 180px repeat(24, minmax(24px, 1fr));
+  gap:6px;
+}
+.cal-header{
+  position:sticky;
+  top:0;
+  z-index:1;
+}
+.cal-cell{
+  border:1px solid var(--border);
+  border-radius:8px;
+  min-height:28px;
+  background: rgba(255,255,255,0.02);
+}
+.cal-month{
+  font-weight:600;
+  justify-content:center;
+  padding-left:0;
+}
+.cal-cell.month-alt{
+  background: rgba(255,255,255,0.04);
+}
+.cal-label{
+  font-size:12px;
+  color:var(--muted);
+  display:flex;
+  align-items:center;
+  padding-left:6px;
+}
+.cal-slot{
+  position:relative;
+  overflow:hidden;
+}
+.cal-stage{
+  width:100%;
+  height:100%;
+  border-radius:6px;
+}
+.stage-indoors{background: rgba(250, 204, 21, 0.75);}
+.stage-transplant{background: rgba(251, 146, 60, 0.75);}
+.stage-sow{background: rgba(248, 113, 113, 0.75);}
+.stage-growing{background: rgba(34, 197, 94, 0.7);}
+.stage-harvest{background: rgba(59, 130, 246, 0.75);}
 .cal-plant-name{
   font-size: 13px;
 }
