@@ -1,0 +1,4103 @@
+{
+  "meta": {
+    "project": "DC Garden Tracker – Master Agronomy JSON",
+    "version": "1.0.0",
+    "created_on": "2026-01-10",
+    "region": {
+      "city": "Washington, DC",
+      "state": "DC",
+      "country": "US",
+      "usda_zone_estimate": "7a",
+      "last_frost_assumption": {
+        "description": "Average last 32°F frost date (midpoint of typical window)",
+        "date": "2026-04-07"
+      },
+      "first_frost_assumption": {
+        "description": "Average first 32°F frost date (midpoint of typical window)",
+        "date": "2026-10-30"
+      },
+      "season_length_days_estimate": 206
+    },
+    "grower_context": {
+      "start_from_seed": true,
+      "beds": [
+        "raised_bed"
+      ],
+      "containers": [
+        "rectangular_planters_solid_bottom"
+      ],
+      "irrigation": "drip/irrigation system available",
+      "supports_available": [
+        "trellises",
+        "cages",
+        "netting",
+        "stakes",
+        "ties"
+      ]
+    },
+    "how_to_use": [
+      "Use plants[].task_plan to generate a unified 'what to do now' queue.",
+      "Use task_templates to standardize actions across crops.",
+      "Use amendments_library for dosage normalization and safety checks.",
+      "If your last/first frost differs, update meta.region.* and regenerate dates using offsets."
+    ]
+  },
+  "amendments_library": {
+    "DrEarth_5-5-5_AllPurpose": {
+      "type": "organic_granular_fertilizer",
+      "npk": [
+        5,
+        5,
+        5
+      ],
+      "primary_use": [
+        "general fertility for vegetables, herbs, containers"
+      ],
+      "typical_application": {
+        "garden_bed_preplant": {
+          "rate": "Follow label; common organic granular baseline is ~3–5 lb per 100 sq ft worked into top few inches",
+          "units": "lb/100sqft",
+          "frequency": "pre-plant, then top-dress every 6–8 weeks for heavy feeders"
+        },
+        "container_topdress": {
+          "rate": "Follow label; typical topdress is 1–2 Tbsp per gallon of potting mix surface area equivalent",
+          "units": "Tbsp/gallon_container_volume",
+          "frequency": "every 4–6 weeks"
+        }
+      },
+      "compatibility_notes": [
+        "Do not over-apply with additional high-N inputs (blood meal) on leafy crops unless deficiency is visible.",
+        "Granular organics release more slowly; pair with fish fertilizer for quick correction."
+      ]
+    },
+    "BlackKow_Compost": {
+      "type": "compost/soil_builder",
+      "npk": "variable_low",
+      "primary_use": [
+        "increase organic matter",
+        "improve water retention and structure",
+        "microbial support"
+      ],
+      "typical_application": {
+        "bed_annual": {
+          "rate": "1–2 inches incorporated or as topdress",
+          "frequency": "spring + midseason"
+        },
+        "container_refresh": {
+          "rate": "10–30% of total mix when re-potting; or 1–2 inch topdress",
+          "frequency": "each season"
+        }
+      },
+      "compatibility_notes": [
+        "For solid-bottom planters, ensure drainage is adequate; compost increases water-holding."
+      ]
+    },
+    "Garden_Gypsum": {
+      "type": "calcium_sulfur_amendment",
+      "purpose": [
+        "add calcium without raising pH",
+        "improve clay flocculation (some soils)"
+      ],
+      "reference_rate_note": "Espoma guidance for garden beds is 6 lb per 30 sq ft incorporated.",
+      "typical_application": {
+        "bed": {
+          "rate": "6 lb per 30 sq ft (incorporate into top ~6 inches)",
+          "frequency": "as needed; often 1x/yr"
+        },
+        "containers": {
+          "rate": "light application; avoid heavy dosing without knowing mix chemistry",
+          "frequency": "as needed"
+        }
+      },
+      "cautions": [
+        "Gypsum is not a substitute for lime; does not raise pH.",
+        "Use primarily if calcium is needed or soil structure benefits; soil test recommended."
+      ]
+    },
+    "NeptunesHarvest_Fish_2-4-1": {
+      "type": "liquid_fertilizer",
+      "npk": [
+        2,
+        4,
+        1
+      ],
+      "purpose": [
+        "quick nutrient availability",
+        "transplant boost",
+        "regular feeding for heavy feeders"
+      ],
+      "typical_dilution": {
+        "outdoor_plants": {
+          "rate": "1/8 cup per gallon of water",
+          "frequency": "every 2–3 weeks"
+        },
+        "seedlings_transplants": {
+          "rate": "weaker mix (e.g., half-strength) initially",
+          "frequency": "every 2–3 weeks"
+        }
+      },
+      "application_methods": [
+        "soil drench",
+        "foliar spray (early/late day)"
+      ],
+      "cautions": [
+        "Avoid applying in full sun heat; can cause leaf burn when foliar feeding.",
+        "Can attract animals; water in well and store securely."
+      ]
+    },
+    "Espoma_TomatoTone_3-4-6": {
+      "type": "organic_blended_fertilizer",
+      "npk": [
+        3,
+        4,
+        6
+      ],
+      "purpose": [
+        "tomatoes/peppers and other fruiting crops"
+      ],
+      "label_rates": {
+        "beds": {
+          "rate": "3 lb (9 cups) per 50 sq ft worked into top 4–6 inches"
+        },
+        "single_plant": {
+          "rate": "3 Tbsp mixed into planting hole/soil at planting"
+        },
+        "pots": {
+          "rate": "2 cups per cubic foot of soil (~1.5 Tbsp per quart)"
+        }
+      },
+      "feeding_schedule": {
+        "start": "10–14 days after planting",
+        "frequency": "twice per month during growing season"
+      },
+      "cautions": [
+        "Keep at least ~3 inches from stems when top-dressing.",
+        "Do not overfertilize early; can cause excessive vegetative growth."
+      ]
+    },
+    "BloodMeal_12-0-0": {
+      "type": "high_nitrogen_organic",
+      "npk": [
+        12,
+        0,
+        0
+      ],
+      "purpose": [
+        "correct nitrogen deficiency",
+        "boost leafy growth when appropriate"
+      ],
+      "label_rates": {
+        "new_garden": {
+          "rate": "2–3 lb per 100 sq ft mixed into top ~3 inches"
+        },
+        "new_transplant": {
+          "rate": "1 tsp per hole mixed into soil"
+        },
+        "side_dress": {
+          "rate": "1–2 tsp monthly depending on plant size and desired growth rate"
+        }
+      },
+      "cautions": [
+        "Overuse increases pest pressure and reduces fruiting in tomatoes/peppers.",
+        "Can burn seedlings if concentrated; always mix thoroughly and water in."
+      ]
+    },
+    "WormCastings": {
+      "type": "soil_biostimulant",
+      "purpose": [
+        "microbial activity",
+        "gentle fertility",
+        "seedling and transplant support"
+      ],
+      "typical_application": {
+        "seed_start_mix": {
+          "rate": "10–20% by volume"
+        },
+        "transplant": {
+          "rate": "handful mixed in planting hole or 1/2–1 inch topdress"
+        },
+        "tea": {
+          "rate": "optional brewed tea; apply during stress periods"
+        }
+      }
+    },
+    "BoneMeal": {
+      "type": "phosphorus_calcium_slow_release",
+      "purpose": [
+        "rooting support",
+        "flowering support if soil P is low"
+      ],
+      "cautions": [
+        "Phosphorus persists; avoid routine use without soil test to prevent excess P."
+      ],
+      "typical_application": {
+        "bed_preplant": {
+          "rate": "follow label; common baseline 1–2 Tbsp per sq ft incorporated"
+        },
+        "planting_hole": {
+          "rate": "1–2 Tbsp mixed into soil, not touching roots directly"
+        }
+      }
+    },
+    "RockPhosphate": {
+      "type": "very_slow_release_phosphorus",
+      "purpose": [
+        "long-term phosphorus and trace minerals"
+      ],
+      "cautions": [
+        "Best used based on soil test; slow to become available."
+      ],
+      "typical_application": {
+        "bed_preplant": {
+          "rate": "follow label; often 2–5 lb per 100 sq ft"
+        }
+      }
+    },
+    "WoodAsh": {
+      "type": "alkaline_potassium_source",
+      "purpose": [
+        "potassium + raises pH"
+      ],
+      "cautions": [
+        "Raises soil pH; do not use on crops preferring neutral to slightly acidic soils unless pH is low.",
+        "Keep away from seedlings and do not mix with ammonium sources at same time."
+      ],
+      "typical_application": {
+        "bed": {
+          "rate": "light dusting; generally <= 5–10 lb per 1,000 sq ft"
+        }
+      }
+    },
+    "CompostTea": {
+      "type": "biological_foliar_or_drench",
+      "purpose": [
+        "microbial inoculation",
+        "mild fertility"
+      ],
+      "typical_application": {
+        "frequency": "every 2–4 weeks or during stress"
+      },
+      "cautions": [
+        "Brew and apply properly to avoid pathogen risk; use clean equipment."
+      ]
+    },
+    "LegumeInoculant": {
+      "type": "rhizobia_inoculant",
+      "purpose": [
+        "enable nitrogen fixation in peas/legumes"
+      ],
+      "usage": "Coat seed prior to sowing per label; avoid direct sun exposure and plant promptly.",
+      "cautions": [
+        "Store cool/dry; inoculant viability declines with heat/time."
+      ]
+    }
+  },
+  "pest_disease_library": {
+    "NeemOil": {
+      "type": "botanical_insecticide_miticide",
+      "targets": [
+        "aphids",
+        "whiteflies",
+        "spider mites",
+        "some soft-bodied insects"
+      ],
+      "use_modes": [
+        "foliar spray",
+        "soil drench (limited)"
+      ],
+      "best_practice": [
+        "Apply early morning or late evening to reduce leaf burn and protect pollinators.",
+        "Spray undersides of leaves; repeat weekly/biweekly when pressure is present.",
+        "Test on a small area first, especially in hot weather."
+      ],
+      "typical_rates": {
+        "foliar_general": "Follow concentrate label; common rates are ~1–2 Tbsp per gallon with a small amount of mild soap as emulsifier (if required by product).",
+        "soil_drench": "Often 1–2 tsp per gallon for drench (label dependent)."
+      }
+    },
+    "CopperFungicide": {
+      "type": "protectant_fungicide",
+      "targets": [
+        "early blight",
+        "leaf spots",
+        "downy mildew (limited)",
+        "bacterial spot (limited)"
+      ],
+      "best_practice": [
+        "Use preventively or at first sign; coverage is critical.",
+        "Do not overuse; copper accumulates in soil. Rotate strategies and follow label."
+      ],
+      "compatibility": [
+        "Avoid tank-mixing with oils unless label permits; risk of phytotoxicity."
+      ]
+    },
+    "Scouting": {
+      "weekly_routine": [
+        "Check undersides of leaves for aphids/eggs.",
+        "Look for chewing damage on brassicas (cabbageworms).",
+        "Monitor for powdery mildew on cucurbits in summer.",
+        "Remove diseased leaves promptly; sanitize tools."
+      ]
+    },
+    "Powdery mildew": {
+      "type": "disease",
+      "id_tips": [
+        "White, talc-like coating on upper leaf surfaces; leaves may yellow and curl.",
+        "Often worsens with high humidity and poor airflow."
+      ],
+      "images": [
+        {
+          "src": "assets/photos/pests/powdery_mildew.jpg",
+          "credit": "Wikimedia Commons",
+          "license": "CC BY-SA 4.0",
+          "source_url": "https://commons.wikimedia.org/wiki/File:Powdery_Mildew_Acer_DK43_(1).jpg"
+        }
+      ]
+    },
+    "Cucumber beetle": {
+      "type": "pest",
+      "id_tips": [
+        "Yellow/black striped beetle on cucurbits; chewing on cotyledons/leaves; can vector bacterial wilt."
+      ],
+      "images": [
+        {
+          "src": "assets/photos/pests/cucumber_beetle.jpg",
+          "credit": "USDA ARS via Wikimedia Commons",
+          "license": "Public domain",
+          "source_url": "https://commons.wikimedia.org/wiki/File:Cucumber_beetle.jpg"
+        }
+      ]
+    },
+    "Early blight": {
+      "type": "disease",
+      "id_tips": [
+        "Dark brown lesions with concentric rings ('target spots'), often starting on lower leaves.",
+        "Yellowing around lesions; progresses upward in warm, wet conditions."
+      ],
+      "images": [
+        {
+          "src": "assets/photos/pests/early_blight.jpg",
+          "credit": "Dwight Sipler via Wikimedia Commons",
+          "license": "CC BY 2.0",
+          "source_url": "https://commons.wikimedia.org/wiki/File:Early_blight_on_tomato_leaves_(7871930010).jpg"
+        }
+      ]
+    }
+  },
+  "task_templates": {
+    "seed_start_indoor": {
+      "fields": [
+        "crop",
+        "variety",
+        "date_target",
+        "tray_cell_size",
+        "depth_in",
+        "temp_F",
+        "light_hours",
+        "notes"
+      ],
+      "defaults": {
+        "light_hours": 14,
+        "temp_F": "crop-specific"
+      }
+    },
+    "direct_sow": {
+      "fields": [
+        "crop",
+        "variety",
+        "date_target",
+        "depth_in",
+        "spacing_in",
+        "row_spacing_in",
+        "succession_interval_days"
+      ]
+    },
+    "harden_off": {
+      "fields": [
+        "crop",
+        "variety",
+        "start_date",
+        "duration_days"
+      ],
+      "defaults": {
+        "duration_days": 7
+      }
+    },
+    "transplant": {
+      "fields": [
+        "crop",
+        "variety",
+        "date_target",
+        "spacing_in",
+        "planting_hole_amendments",
+        "water_in_instructions"
+      ]
+    },
+    "thin_seedlings": {
+      "fields": [
+        "crop",
+        "variety",
+        "date_target",
+        "final_spacing_in"
+      ]
+    },
+    "install_support": {
+      "fields": [
+        "crop",
+        "variety",
+        "date_target",
+        "support_type",
+        "notes"
+      ]
+    },
+    "fertilize": {
+      "fields": [
+        "crop",
+        "variety",
+        "date_target",
+        "product",
+        "dose",
+        "method",
+        "frequency_days",
+        "stop_conditions"
+      ]
+    },
+    "irrigation_check": {
+      "fields": [
+        "date_target",
+        "notes"
+      ],
+      "defaults": {
+        "notes": "Verify emitters working; adjust run time for temperature/rainfall."
+      }
+    },
+    "pest_scout": {
+      "fields": [
+        "date_target",
+        "targets",
+        "notes"
+      ],
+      "defaults": {
+        "targets": "crop-specific"
+      }
+    },
+    "spray": {
+      "fields": [
+        "crop",
+        "variety",
+        "date_target",
+        "product",
+        "dilution",
+        "coverage_notes",
+        "reentry_notes"
+      ]
+    },
+    "prune_train": {
+      "fields": [
+        "crop",
+        "variety",
+        "date_target",
+        "method",
+        "notes"
+      ]
+    },
+    "harvest": {
+      "fields": [
+        "crop",
+        "variety",
+        "date_target",
+        "maturity_signs",
+        "frequency_days",
+        "storage_notes"
+      ]
+    },
+    "succession_sow": {
+      "fields": [
+        "crop",
+        "variety",
+        "date_target",
+        "repeat_every_days",
+        "end_date"
+      ]
+    },
+    "cleanup_rotate": {
+      "fields": [
+        "crop",
+        "variety",
+        "date_target",
+        "next_crop_suggestion",
+        "sanitation_notes"
+      ]
+    }
+  },
+  "plants": [
+    {
+      "name": "Waltham 29 Broccoli",
+      "catalog_id": "1440",
+      "species": "Brassica oleracea var. italica",
+      "category": "vegetable",
+      "site_requirements": {
+        "sun": "Full sun (6–8+ hrs) unless noted",
+        "soil_ph": "6.2–7.2",
+        "soil": "Well-drained, fertile; raised bed ideal",
+        "container_suitability": "Possible in large containers (5+ gal) but best in beds"
+      },
+      "watering": {
+        "general": "Aim for ~1–1.5 inches/week total (rain+irrigation) for most vegetables; more in containers and heat.",
+        "irrigation_notes": "Drip irrigation preferred; water early to reduce disease."
+      },
+      "fertility_strategy": [
+        {
+          "stage": "bed_prep",
+          "products": [
+            "BlackKow_Compost",
+            "DrEarth_5-5-5_AllPurpose"
+          ],
+          "dose": "Compost 1–2 in; 5-5-5 moderate baseline",
+          "timing": "2–3 weeks before transplant"
+        },
+        {
+          "stage": "established",
+          "products": [
+            "NeptunesHarvest_Fish_2-4-1"
+          ],
+          "dose": "1/8 cup per gallon; drench at base",
+          "timing": "every 2–3 weeks until heads begin"
+        },
+        {
+          "stage": "nitrogen_boost_optional",
+          "products": [
+            "BloodMeal_12-0-0"
+          ],
+          "dose": "1 tsp side-dress monthly only if leaves pale/slow growth",
+          "timing": "cool weather only"
+        }
+      ],
+      "pest_disease": {
+        "key_pests": [
+          "cabbageworms/loopers",
+          "aphids",
+          "flea beetles"
+        ],
+        "key_diseases": [
+          "downy mildew",
+          "black rot (bacterial)",
+          "clubroot (soilborne)"
+        ],
+        "prevention": [
+          "Use insect netting/row cover early to exclude cabbage moths.",
+          "Rotate brassicas 3+ years if possible to reduce soilborne disease.",
+          "Water at soil line; avoid wet foliage overnight."
+        ],
+        "images": {
+          "cabbageworms/loopers": "icons/pests/caterpillar.svg",
+          "aphids": "icons/pests/aphid.svg",
+          "flea beetles": "icons/pests/caterpillar.svg",
+          "downy mildew": "icons/pests/mildew.svg"
+        }
+      },
+      "support_and_training": [],
+      "succession_and_rotation": {
+        "succession": [
+          {
+            "pattern": "Spring crop then switch bed to warm-season crop; or plan fall broccoli",
+            "notes": "Broccoli bolts in sustained heat"
+          }
+        ],
+        "rotation_notes": []
+      },
+      "harvest_and_use": {
+        "harvest_window": "~65–75 days from transplant; earlier for fall in cool weather",
+        "harvest_method": "Cut main head when tight; leave plant for side shoots",
+        "frequency": "Main head once + side shoots every 2–4 days for 2–4 weeks",
+        "storage": "Refrigerate 3–5 days; blanch/freeze for longer"
+      },
+      "task_plan": [
+        {
+          "template": "pre_plant_soil_amendment",
+          "date_target": "2026-01-14",
+          "notes": "Apply compost, worm castings, and base fertilizer."
+        },
+        {
+          "template": "seed_start_indoor",
+          "date_target": "2026-02-10",
+          "tray_cell_size": "72 or 50",
+          "depth_in": 0.25,
+          "temp_F": 70,
+          "light_hours": 14,
+          "notes": "Keep evenly moist; avoid legginess."
+        },
+        {
+          "template": "harden_off",
+          "start_date": "2026-03-24",
+          "duration_days": 7
+        },
+        {
+          "template": "transplant",
+          "date_target": "2026-03-17",
+          "spacing_in": "15",
+          "planting_hole_amendments": [
+            "Compost",
+            "DrEarth_5-5-5_AllPurpose (light)"
+          ],
+          "water_in_instructions": "Water deeply; keep moist first week."
+        },
+        {
+          "template": "install_support",
+          "date_target": "2026-03-17",
+          "support_type": "insect netting/row cover",
+          "notes": "Install immediately if using."
+        },
+        {
+          "template": "fertilize",
+          "date_target": "2026-04-21",
+          "product": "NeptunesHarvest_Fish_2-4-1",
+          "dose": "1/8 cup per gallon",
+          "method": "soil drench",
+          "frequency_days": 18,
+          "stop_conditions": "Stop once heads begin forming"
+        },
+        {
+          "template": "pest_scout",
+          "date_target": "2026-04-14",
+          "targets": "cabbageworms/aphids",
+          "notes": "Check undersides weekly."
+        },
+        {
+          "template": "harvest",
+          "date_target": "2026-06-16",
+          "maturity_signs": "Tight buds, no yellow petals",
+          "frequency_days": 3,
+          "storage_notes": "Cool immediately."
+        },
+        {
+          "template": "end_of_season_cleanup",
+          "date_target": "2026-11-06",
+          "notes": "Remove crop residues; discard diseased material; leave roots of legumes if applicable; prep space for fall/winter rotation."
+        },
+        {
+          "template": "fish_fertilizer",
+          "date_target": "2026-03-31",
+          "product": "fish_fertilizer_2_4_1",
+          "dose": "1–2 Tbsp/gal",
+          "frequency_days": 14,
+          "notes": "Rolling: next due is based on the last time you mark this complete."
+        }
+      ],
+      "planting": {
+        "spring": {
+          "indoor_start_window": {
+            "start": "2026-02-10",
+            "end": "2026-02-24"
+          },
+          "transplant_window": {
+            "start": "2026-03-17",
+            "end": "2026-04-14"
+          },
+          "direct_sow_window": {
+            "start": "2026-03-10",
+            "end": "2026-04-21"
+          },
+          "notes": "Broccoli prefers cool weather; spring crop can bolt in heat."
+        },
+        "fall": {
+          "indoor_start_window": {
+            "start": "2026-06-01",
+            "end": "2026-06-25"
+          },
+          "transplant_window": {
+            "start": "2026-07-01",
+            "end": "2026-08-10"
+          },
+          "direct_sow_window": {
+            "start": "2026-07-01",
+            "end": "2026-08-01"
+          },
+          "notes": "Fall crop is usually higher quality in DC."
+        },
+        "seed_depth_in": 0.25,
+        "germination": {
+          "temp_F": "60–85 (ideal ~70)",
+          "days": "4–10"
+        },
+        "spacing_in": {
+          "in_row": "12–18",
+          "row": "24–30"
+        },
+        "methods_supported": [
+          "transplant",
+          "direct_sow"
+        ]
+      },
+      "soil_preparation": {
+        "compost": "1–2 inches incorporated pre-plant; brassicas are heavy feeders",
+        "worm_castings": "0.5–1 cup per transplant hole",
+        "base_fertilizer": "Dr. Earth 5-5-5 at 3 Tbsp/sq ft pre-plant",
+        "nitrogen_support": "Blood meal 1 tsp per plant at transplant (optional) OR 1 Tbsp/sq ft for low-N beds",
+        "calcium_support": "Gypsum 1–2 lbs/100 sq ft if Ca is low or clubroot risk is being managed via pH strategies (soil test)",
+        "notes": "Primary risk is insufficient N early; keep steady growth to avoid buttoning and stress."
+      },
+      "supplement_schedule": [
+        {
+          "stage": "week_2_after_transplant",
+          "product": "fish_fertilizer_2_4_1",
+          "rate": "2 Tbsp/gal",
+          "frequency": "Every 14 days",
+          "notes": "Continue until heads/sprouts begin to form."
+        },
+        {
+          "stage": "head_or_sprout_development",
+          "product": "dr_earth_5_5_5",
+          "rate": "1–2 Tbsp/sq ft topdress",
+          "frequency": "Every 4 weeks",
+          "notes": "Avoid over-fertilizing late; prioritize moisture consistency."
+        },
+        {
+          "stage": "optional_microbiology",
+          "product": "compost_tea",
+          "frequency": "Every 4–6 weeks"
+        }
+      ],
+      "crop_profile": "brassicas",
+      "visual": {
+        "icon": "assets/icons/plants/waltham_29_broccoli.svg",
+        "photo": "assets/photos/plants/broccoli.jpg"
+      }
+    },
+    {
+      "name": "Boro Beet",
+      "catalog_id": "1315",
+      "species": "Beta vulgaris",
+      "category": "vegetable",
+      "site_requirements": {
+        "sun": "Full sun (6–8+ hrs) unless noted",
+        "soil_ph": "6.0–7.5",
+        "soil": "Well-drained, fertile; raised bed ideal",
+        "container_suitability": "Good in deep containers (10–12 in depth)"
+      },
+      "watering": {
+        "general": "Aim for ~1–1.5 inches/week total (rain+irrigation) for most vegetables; more in containers and heat.",
+        "irrigation_notes": "Drip irrigation preferred; water early to reduce disease."
+      },
+      "fertility_strategy": [
+        {
+          "stage": "bed_prep",
+          "products": [
+            "BlackKow_Compost"
+          ],
+          "dose": "1–2 inches topdress/incorporate",
+          "timing": "pre-sow"
+        },
+        {
+          "stage": "light_feed",
+          "products": [
+            "NeptunesHarvest_Fish_2-4-1"
+          ],
+          "dose": "half-strength early; then normal 1/8 cup/gal",
+          "timing": "once seedlings 2–3 true leaves; repeat every 3 weeks if growth slow"
+        },
+        {
+          "stage": "avoid_excess_N",
+          "products": [
+            "BloodMeal_12-0-0"
+          ],
+          "dose": "avoid unless severe deficiency",
+          "timing": "n/a"
+        }
+      ],
+      "pest_disease": {
+        "key_pests": [
+          "leaf miners",
+          "flea beetles",
+          "aphids"
+        ],
+        "key_diseases": [
+          "Cercospora leaf spot",
+          "damping off"
+        ],
+        "prevention": [
+          "Keep foliage dry; thin for airflow.",
+          "Remove infected leaves; rotate crops."
+        ],
+        "images": {
+          "flea beetles": "icons/pests/caterpillar.svg",
+          "aphids": "icons/pests/aphid.svg",
+          "Cercospora leaf spot": "icons/pests/leafspot.svg"
+        }
+      },
+      "support_and_training": [],
+      "succession_and_rotation": {
+        "succession": [],
+        "rotation_notes": []
+      },
+      "harvest_and_use": {
+        "harvest_window": "~50–55 days; earlier for baby beets",
+        "harvest_method": "Pull when 1.5–3 in diameter; twist greens off",
+        "frequency": "Single harvest per sowing (can harvest greens earlier)",
+        "storage": "Roots 1–3 months refrigerated in perforated bag; greens 2–4 days"
+      },
+      "task_plan": [
+        {
+          "template": "pre_plant_soil_amendment",
+          "date_target": "2026-01-14",
+          "notes": "Apply compost, worm castings, and base fertilizer."
+        },
+        {
+          "template": "direct_sow",
+          "date_target": "2026-03-03",
+          "depth_in": 0.5,
+          "spacing_in": "1 (then thin)",
+          "row_spacing_in": "12",
+          "succession_interval_days": 14
+        },
+        {
+          "template": "thin_seedlings",
+          "date_target": "2026-04-21",
+          "final_spacing_in": "3–4"
+        },
+        {
+          "template": "fertilize",
+          "date_target": "2026-04-28",
+          "product": "NeptunesHarvest_Fish_2-4-1",
+          "dose": "half-strength then normal",
+          "method": "soil drench",
+          "frequency_days": 21,
+          "stop_conditions": "Stop 2 weeks before harvest if roots sized"
+        },
+        {
+          "template": "harvest",
+          "date_target": "2026-06-02",
+          "maturity_signs": "Shoulders visible; 2–3 inch roots",
+          "frequency_days": 7,
+          "storage_notes": "Store roots and greens separately."
+        },
+        {
+          "template": "succession_sow",
+          "date_target": "2026-03-03",
+          "repeat_every_days": 14,
+          "end_date": "2026-04-28"
+        },
+        {
+          "template": "end_of_season_cleanup",
+          "date_target": "2026-11-06",
+          "notes": "Remove crop residues; discard diseased material; leave roots of legumes if applicable; prep space for fall/winter rotation."
+        },
+        {
+          "template": "pest_scout",
+          "date_target": "2026-03-10",
+          "frequency_days": 7,
+          "notes": "Quick weekly inspection. If you see issues, add targeted control tasks."
+        }
+      ],
+      "planting": {
+        "spring_direct_sow_window": {
+          "start": "2026-03-03",
+          "end": "2026-04-28"
+        },
+        "fall_direct_sow_window": {
+          "start": "2026-08-01",
+          "end": "2026-09-05"
+        },
+        "seed_depth_in": 0.5,
+        "germination": {
+          "temp_F": "50–85 (ideal 60–75)",
+          "days": "5–12"
+        },
+        "spacing_in": {
+          "in_row": "3–4 after thinning",
+          "row": "12"
+        },
+        "notes": "Seed is a cluster; thinning is essential for uniform roots.",
+        "methods_supported": [
+          "direct_sow"
+        ]
+      },
+      "soil_preparation": {
+        "compost": "0.5–1 inch incorporated; avoid fresh high-N amendments",
+        "worm_castings": "Light dusting in row; do not concentrate in clumps",
+        "base_fertilizer": "Dr. Earth 5-5-5 at 1 Tbsp/sq ft pre-plant (light)",
+        "phosphorus": "Bone meal/rock phosphate only if soil test indicates low P; otherwise omit",
+        "potassium_note": "Wood ash only if soil test indicates low K AND pH is not high; otherwise omit",
+        "notes": "Excess N causes hairy/forked roots and heavy tops; prioritize loose soil and consistent moisture."
+      },
+      "supplement_schedule": [
+        {
+          "stage": "thinning_or_true_leaf_stage",
+          "product": "fish_fertilizer_2_4_1",
+          "rate": "0.5–1 Tbsp/gal",
+          "frequency": "Once, optionally",
+          "notes": "Use only if growth is pale/slow; otherwise skip."
+        },
+        {
+          "stage": "mid_growth_optional",
+          "product": "compost_tea",
+          "frequency": "Once mid-cycle",
+          "notes": "Optional; do not overfeed."
+        }
+      ],
+      "crop_profile": "root_crops",
+      "visual": {
+        "icon": "assets/icons/plants/boro_beet.svg"
+      }
+    },
+    {
+      "name": "Brussels Sprouts (Marte)",
+      "catalog_id": "1452",
+      "species": "Brassica oleracea var. gemmifera",
+      "category": "vegetable",
+      "site_requirements": {
+        "sun": "Full sun (6–8+ hrs) unless noted",
+        "soil_ph": "6.2–7.2",
+        "soil": "Well-drained, fertile; raised bed ideal",
+        "container_suitability": "Not ideal; needs large volume and stability"
+      },
+      "watering": {
+        "general": "Aim for ~1–1.5 inches/week total (rain+irrigation) for most vegetables; more in containers and heat.",
+        "irrigation_notes": "Drip irrigation preferred; water early to reduce disease."
+      },
+      "fertility_strategy": [
+        {
+          "stage": "bed_prep",
+          "products": [
+            "BlackKow_Compost",
+            "DrEarth_5-5-5_AllPurpose"
+          ],
+          "dose": "Compost 1–2 in; 5-5-5 moderate",
+          "timing": "late June"
+        },
+        {
+          "stage": "topdress",
+          "products": [
+            "NeptunesHarvest_Fish_2-4-1"
+          ],
+          "dose": "1/8 cup per gallon",
+          "timing": "every 3 weeks through September"
+        },
+        {
+          "stage": "optional_N",
+          "products": [
+            "BloodMeal_12-0-0"
+          ],
+          "dose": "1–2 tsp side dress monthly if pale",
+          "timing": "August–September only"
+        }
+      ],
+      "pest_disease": {
+        "key_pests": [
+          "cabbageworms",
+          "harlequin bugs",
+          "aphids"
+        ],
+        "key_diseases": [
+          "black rot",
+          "downy mildew"
+        ],
+        "prevention": [
+          "Use netting early; scout weekly.",
+          "Remove lower yellow leaves to improve airflow if disease pressure."
+        ],
+        "images": {
+          "cabbageworms": "icons/pests/caterpillar.svg",
+          "aphids": "icons/pests/aphid.svg",
+          "downy mildew": "icons/pests/mildew.svg"
+        }
+      },
+      "support_and_training": [
+        "Stake plants in windy sites; tall stalk can topple."
+      ],
+      "succession_and_rotation": {
+        "succession": [],
+        "rotation_notes": []
+      },
+      "harvest_and_use": {
+        "harvest_window": "After cool weather; ~100–110 days from transplant",
+        "harvest_method": "Pick firm sprouts from bottom upward; optionally top plant late season to size sprouts",
+        "frequency": "Every 5–10 days once sprouts mature",
+        "storage": "Refrigerate 1–2 weeks; best flavor after light frost"
+      },
+      "task_plan": [
+        {
+          "template": "pre_plant_soil_amendment",
+          "date_target": "2026-01-14",
+          "notes": "Apply compost, worm castings, and base fertilizer."
+        },
+        {
+          "template": "seed_start_indoor",
+          "date_target": "2026-05-15",
+          "tray_cell_size": "72",
+          "depth_in": 0.25,
+          "temp_F": 70,
+          "light_hours": 14,
+          "notes": "Grow sturdy transplants."
+        },
+        {
+          "template": "transplant",
+          "date_target": "2026-07-01",
+          "spacing_in": "20",
+          "planting_hole_amendments": [
+            "Compost",
+            "DrEarth_5-5-5_AllPurpose"
+          ],
+          "water_in_instructions": "Water deeply; mulch."
+        },
+        {
+          "template": "fertilize",
+          "date_target": "2026-08-01",
+          "product": "NeptunesHarvest_Fish_2-4-1",
+          "dose": "1/8 cup per gallon",
+          "method": "soil drench",
+          "frequency_days": 21,
+          "stop_conditions": "Stop after mid-October"
+        },
+        {
+          "template": "pest_scout",
+          "date_target": "2026-07-15",
+          "targets": "cabbageworms/harlequin bugs",
+          "notes": "Hand pick; consider netting."
+        },
+        {
+          "template": "harvest",
+          "date_target": "2026-10-15",
+          "maturity_signs": "Sprouts 1–1.5 inches, firm",
+          "frequency_days": 7,
+          "storage_notes": "Store on stalk or loose."
+        },
+        {
+          "template": "end_of_season_cleanup",
+          "date_target": "2026-11-06",
+          "notes": "Remove crop residues; discard diseased material; leave roots of legumes if applicable; prep space for fall/winter rotation."
+        },
+        {
+          "template": "harden_off",
+          "date_target": "2026-06-21",
+          "notes": "Begin hardening off seedlings before transplanting."
+        },
+        {
+          "template": "fish_fertilizer",
+          "date_target": "2026-07-15",
+          "product": "fish_fertilizer_2_4_1",
+          "dose": "1–2 Tbsp/gal",
+          "frequency_days": 14,
+          "notes": "Rolling: next due is based on the last time you mark this complete."
+        }
+      ],
+      "planting": {
+        "primary": {
+          "indoor_start_window": {
+            "start": "2026-05-15",
+            "end": "2026-06-15"
+          },
+          "transplant_window": {
+            "start": "2026-07-01",
+            "end": "2026-08-01"
+          },
+          "notes": "In DC, brussels are typically a fall crop transplanted mid-summer."
+        },
+        "seed_depth_in": 0.25,
+        "germination": {
+          "temp_F": "60–80",
+          "days": "5–10"
+        },
+        "spacing_in": {
+          "in_row": "18–24",
+          "row": "30–36"
+        },
+        "methods_supported": [
+          "transplant",
+          "direct_sow"
+        ]
+      },
+      "soil_preparation": {
+        "compost": "1–2 inches incorporated pre-plant; brassicas are heavy feeders",
+        "worm_castings": "0.5–1 cup per transplant hole",
+        "base_fertilizer": "Dr. Earth 5-5-5 at 3 Tbsp/sq ft pre-plant",
+        "nitrogen_support": "Blood meal 1 tsp per plant at transplant (optional) OR 1 Tbsp/sq ft for low-N beds",
+        "calcium_support": "Gypsum 1–2 lbs/100 sq ft if Ca is low or clubroot risk is being managed via pH strategies (soil test)",
+        "notes": "Primary risk is insufficient N early; keep steady growth to avoid buttoning and stress."
+      },
+      "supplement_schedule": [
+        {
+          "stage": "week_2_after_transplant",
+          "product": "fish_fertilizer_2_4_1",
+          "rate": "2 Tbsp/gal",
+          "frequency": "Every 14 days",
+          "notes": "Continue until heads/sprouts begin to form."
+        },
+        {
+          "stage": "head_or_sprout_development",
+          "product": "dr_earth_5_5_5",
+          "rate": "1–2 Tbsp/sq ft topdress",
+          "frequency": "Every 4 weeks",
+          "notes": "Avoid over-fertilizing late; prioritize moisture consistency."
+        },
+        {
+          "stage": "optional_microbiology",
+          "product": "compost_tea",
+          "frequency": "Every 4–6 weeks"
+        }
+      ],
+      "crop_profile": "brassicas",
+      "visual": {
+        "icon": "assets/icons/plants/brussels_sprouts_marte.svg"
+      }
+    },
+    {
+      "name": "Aunt Molly’s Ground Cherry",
+      "catalog_id": "2395",
+      "species": "Physalis pruinosa",
+      "category": "fruiting_vegetable",
+      "site_requirements": {
+        "sun": "Full sun (6–8+ hrs) unless noted",
+        "soil_ph": "6.0–7.0",
+        "soil": "Well-drained, fertile; raised bed ideal",
+        "container_suitability": "Good in 10–15 gal containers"
+      },
+      "watering": {
+        "general": "Aim for ~1–1.5 inches/week total (rain+irrigation) for most vegetables; more in containers and heat.",
+        "irrigation_notes": "Drip irrigation preferred; water early to reduce disease."
+      },
+      "fertility_strategy": [
+        {
+          "stage": "bed_prep",
+          "products": [
+            "BlackKow_Compost"
+          ],
+          "dose": "1–2 inches",
+          "timing": "pre-transplant"
+        },
+        {
+          "stage": "at_planting",
+          "products": [
+            "Espoma_TomatoTone_3-4-6"
+          ],
+          "dose": "3 Tbsp mixed into planting soil",
+          "timing": "transplant day"
+        },
+        {
+          "stage": "ongoing",
+          "products": [
+            "NeptunesHarvest_Fish_2-4-1"
+          ],
+          "dose": "1/8 cup per gallon every 3 weeks",
+          "timing": "June–August",
+          "notes": "Avoid excessive nitrogen; prioritize fruiting."
+        }
+      ],
+      "pest_disease": {
+        "key_pests": [
+          "flea beetles",
+          "aphids",
+          "tomato hornworm (occasionally)"
+        ],
+        "key_diseases": [
+          "powdery mildew (late)",
+          "leaf spots"
+        ],
+        "prevention": [
+          "Mulch; water at base; remove diseased leaves."
+        ],
+        "images": {
+          "flea beetles": "icons/pests/caterpillar.svg",
+          "aphids": "icons/pests/aphid.svg",
+          "tomato hornworm (occasionally)": "icons/pests/caterpillar.svg",
+          "powdery mildew (late)": "icons/pests/mildew.svg",
+          "leaf spots": "icons/pests/leafspot.svg"
+        }
+      },
+      "support_and_training": [
+        "Low cage or trellis helps keep fruit clean; plants sprawl."
+      ],
+      "succession_and_rotation": {
+        "succession": [],
+        "rotation_notes": []
+      },
+      "harvest_and_use": {
+        "harvest_window": "~70–80 days from transplant; continues until frost",
+        "harvest_method": "Collect fallen husked fruits from ground when papery husk turns tan and fruit is yellow",
+        "frequency": "Every 2–3 days in peak season",
+        "storage": "Room temp 3–7 days (in husk); refrigerate longer"
+      },
+      "task_plan": [
+        {
+          "template": "pre_plant_soil_amendment",
+          "date_target": "2026-01-14",
+          "notes": "Apply compost, worm castings, and base fertilizer."
+        },
+        {
+          "template": "seed_start_indoor",
+          "date_target": "2026-02-10",
+          "tray_cell_size": "72",
+          "depth_in": 0.125,
+          "temp_F": 80,
+          "light_hours": 14,
+          "notes": "Bottom heat improves germination."
+        },
+        {
+          "template": "transplant",
+          "date_target": "2026-04-21",
+          "spacing_in": "30",
+          "planting_hole_amendments": [
+            "Compost",
+            "Tomato-tone 3 Tbsp"
+          ],
+          "water_in_instructions": "Water in with fish fertilizer (half strength)."
+        },
+        {
+          "template": "install_support",
+          "date_target": "2026-05-05",
+          "support_type": "low cage",
+          "notes": "Prevents sprawl and keeps fruits cleaner."
+        },
+        {
+          "template": "fertilize",
+          "date_target": "2026-05-12",
+          "product": "Espoma_TomatoTone_3-4-6",
+          "dose": "Top-dress per label; twice monthly",
+          "method": "ring band 3 in from stem",
+          "frequency_days": 14,
+          "stop_conditions": "Stop ~4 weeks before first frost"
+        },
+        {
+          "template": "harvest",
+          "date_target": "2026-07-15",
+          "maturity_signs": "Fruits drop; husk tan; fruit golden",
+          "frequency_days": 2,
+          "storage_notes": "Keep in husk for best shelf life."
+        },
+        {
+          "template": "end_of_season_cleanup",
+          "date_target": "2026-11-06",
+          "notes": "Remove crop residues; discard diseased material; leave roots of legumes if applicable; prep space for fall/winter rotation."
+        },
+        {
+          "template": "harden_off",
+          "date_target": "2026-04-11",
+          "notes": "Begin hardening off seedlings before transplanting."
+        },
+        {
+          "template": "fish_fertilizer",
+          "date_target": "2026-05-05",
+          "product": "fish_fertilizer_2_4_1",
+          "dose": "1–2 Tbsp/gal",
+          "frequency_days": 14,
+          "notes": "Rolling: next due is based on the last time you mark this complete."
+        },
+        {
+          "template": "tomato_tone_topdress",
+          "date_target": "2026-05-12",
+          "product": "tomato_tone_3_4_6",
+          "dose": "2 Tbsp/plant (in-ground) or 1 Tbsp/5-gal container",
+          "frequency_days": 35,
+          "notes": "Rolling: topdress cadence for flowering/fruiting; adjust if plants are overly leafy."
+        },
+        {
+          "template": "pest_scout",
+          "date_target": "2026-04-28",
+          "frequency_days": 7,
+          "notes": "Quick weekly inspection. If you see issues, add targeted control tasks."
+        }
+      ],
+      "planting": {
+        "indoor_start_window": {
+          "start": "2026-02-10",
+          "end": "2026-02-24"
+        },
+        "transplant_window": {
+          "start": "2026-04-21",
+          "end": "2026-05-12"
+        },
+        "seed_depth_in": 0.125,
+        "germination": {
+          "temp_F": "75–85",
+          "days": "7–14"
+        },
+        "spacing_in": {
+          "in_row": "24–36",
+          "row": "36–48"
+        },
+        "notes": "Warm-season; slow starter; do not transplant into cold soil.",
+        "methods_supported": [
+          "transplant"
+        ]
+      },
+      "soil_preparation": {
+        "compost": "1–2 inches incorporated pre-plant; avoid burying stems in fresh compost pockets (even mixing)",
+        "worm_castings": "0.5–1 cup per transplant hole or 5–10% of container mix",
+        "base_fertilizer": "Dr. Earth 5-5-5 at 2–3 Tbsp/sq ft worked in 1–2 weeks pre-plant",
+        "calcium_support": "Gypsum 1–2 lbs/100 sq ft pre-plant if soil test indicates low Ca or if blossom-end rot risk; otherwise omit",
+        "phosphorus": "Bone meal/rock phosphate ONLY if soil test indicates low P; otherwise avoid adding P",
+        "notes": "Goal: steady N early, then bias toward K/Ca during flowering/fruiting; avoid excess N once fruit set begins."
+      },
+      "supplement_schedule": [
+        {
+          "stage": "post_transplant_week_2_to_flower",
+          "product": "fish_fertilizer_2_4_1",
+          "rate": "1 Tbsp/gal (young plants) → 2 Tbsp/gal (vigorous growth)",
+          "frequency": "Every 14 days",
+          "stop_conditions": "Reduce/stop if plants are overly leafy or dark green; resume at lower rate."
+        },
+        {
+          "stage": "first_flower_to_first_fruit_set",
+          "product": "tomato_tone_3_4_6",
+          "rate": "2 Tbsp per plant (in-ground) or 1 Tbsp per 5-gal container",
+          "frequency": "Every 4–6 weeks",
+          "notes": "Scratch in lightly and water. Use as primary in-season granular for tomatoes/peppers."
+        },
+        {
+          "stage": "heavy_fruiting",
+          "product": "fish_fertilizer_2_4_1",
+          "rate": "1 Tbsp/gal",
+          "frequency": "Every 21 days",
+          "notes": "Use as a light booster, not a primary feed, to avoid excess vegetative growth."
+        },
+        {
+          "stage": "mid_season_microbiology_optional",
+          "product": "compost_tea",
+          "frequency": "Every 4 weeks",
+          "notes": "Optional; prioritize consistent watering and mulch over teas if time constrained."
+        }
+      ],
+      "crop_profile": "solanaceae_fruiting",
+      "visual": {
+        "icon": "assets/icons/plants/aunt_molly_s_ground_cherry.svg"
+      }
+    },
+    {
+      "name": "Thumbelina Baby Ball Carrot",
+      "catalog_id": "1615",
+      "species": "Daucus carota subsp. sativus",
+      "category": "vegetable",
+      "site_requirements": {
+        "sun": "Full sun (6–8+ hrs) unless noted",
+        "soil_ph": "6.0–6.8",
+        "soil": "Well-drained, fertile; raised bed ideal",
+        "container_suitability": "Excellent in deep containers (10–12+ in)"
+      },
+      "watering": {
+        "general": "Aim for ~1–1.5 inches/week total (rain+irrigation) for most vegetables; more in containers and heat.",
+        "irrigation_notes": "Drip irrigation preferred; water early to reduce disease."
+      },
+      "fertility_strategy": [
+        {
+          "stage": "bed_prep",
+          "products": [
+            "BlackKow_Compost"
+          ],
+          "dose": "Light compost; avoid fresh manure",
+          "timing": "pre-sow"
+        },
+        {
+          "stage": "avoid_high_N",
+          "products": [
+            "BloodMeal_12-0-0"
+          ],
+          "dose": "avoid",
+          "timing": "n/a"
+        },
+        {
+          "stage": "optional_P_if_low",
+          "products": [
+            "BoneMeal"
+          ],
+          "dose": "small amount per label if soil test indicates low P",
+          "timing": "pre-sow"
+        }
+      ],
+      "pest_disease": {
+        "key_pests": [
+          "carrot rust fly (less common)",
+          "aphids"
+        ],
+        "key_diseases": [
+          "Alternaria leaf blight",
+          "damping off"
+        ],
+        "prevention": [
+          "Thin for airflow; avoid overhead irrigation late day."
+        ],
+        "images": {
+          "aphids": "icons/pests/aphid.svg",
+          "Alternaria leaf blight": "icons/pests/leafspot.svg"
+        }
+      },
+      "support_and_training": [],
+      "succession_and_rotation": {
+        "succession": [],
+        "rotation_notes": []
+      },
+      "harvest_and_use": {
+        "harvest_window": "~55–65 days; harvest when 1.5–2.5 in diameter (ball)",
+        "harvest_method": "Loosen soil, pull gently",
+        "frequency": "Single harvest per sowing; can pull selectively",
+        "storage": "Refrigerate 2–4 weeks; keep tops removed"
+      },
+      "task_plan": [
+        {
+          "template": "pre_plant_soil_amendment",
+          "date_target": "2026-01-14",
+          "notes": "Apply compost, worm castings, and base fertilizer."
+        },
+        {
+          "template": "direct_sow",
+          "date_target": "2026-03-10",
+          "depth_in": 0.25,
+          "spacing_in": "dense then thin",
+          "row_spacing_in": "10–12",
+          "succession_interval_days": 21
+        },
+        {
+          "template": "thin_seedlings",
+          "date_target": "2026-05-05",
+          "final_spacing_in": "2–3"
+        },
+        {
+          "template": "pest_scout",
+          "date_target": "2026-05-05",
+          "targets": "leaf blight, aphids",
+          "notes": "Remove diseased foliage early."
+        },
+        {
+          "template": "harvest",
+          "date_target": "2026-06-23",
+          "maturity_signs": "Golf-ball size, good color",
+          "frequency_days": 7,
+          "storage_notes": "Wash and chill promptly."
+        },
+        {
+          "template": "end_of_season_cleanup",
+          "date_target": "2026-11-06",
+          "notes": "Remove crop residues; discard diseased material; leave roots of legumes if applicable; prep space for fall/winter rotation."
+        }
+      ],
+      "planting": {
+        "spring_direct_sow_window": {
+          "start": "2026-03-10",
+          "end": "2026-05-19"
+        },
+        "fall_direct_sow_window": {
+          "start": "2026-07-20",
+          "end": "2026-09-01"
+        },
+        "seed_depth_in": 0.25,
+        "germination": {
+          "temp_F": "55–75 (slow if cool)",
+          "days": "10–21"
+        },
+        "spacing_in": {
+          "in_row": "2–3 after thinning",
+          "row": "10–12"
+        },
+        "notes": "Keep surface consistently moist until germination; cover with board/burlap and mist if needed.",
+        "methods_supported": [
+          "direct_sow"
+        ]
+      },
+      "soil_preparation": {
+        "compost": "0.5–1 inch incorporated; avoid fresh high-N amendments",
+        "worm_castings": "Light dusting in row; do not concentrate in clumps",
+        "base_fertilizer": "Dr. Earth 5-5-5 at 1 Tbsp/sq ft pre-plant (light)",
+        "phosphorus": "Bone meal/rock phosphate only if soil test indicates low P; otherwise omit",
+        "potassium_note": "Wood ash only if soil test indicates low K AND pH is not high; otherwise omit",
+        "notes": "Excess N causes hairy/forked roots and heavy tops; prioritize loose soil and consistent moisture."
+      },
+      "supplement_schedule": [
+        {
+          "stage": "thinning_or_true_leaf_stage",
+          "product": "fish_fertilizer_2_4_1",
+          "rate": "0.5–1 Tbsp/gal",
+          "frequency": "Once, optionally",
+          "notes": "Use only if growth is pale/slow; otherwise skip."
+        },
+        {
+          "stage": "mid_growth_optional",
+          "product": "compost_tea",
+          "frequency": "Once mid-cycle",
+          "notes": "Optional; do not overfeed."
+        }
+      ],
+      "crop_profile": "root_crops",
+      "visual": {
+        "icon": "assets/icons/plants/thumbelina_baby_ball_carrot.svg"
+      }
+    },
+    {
+      "name": "Pumpkin Spice Jalapeño Pepper",
+      "catalog_id": "3654",
+      "species": "Capsicum annuum",
+      "category": "vegetable",
+      "site_requirements": {
+        "sun": "Full sun (6–8+ hrs) unless noted",
+        "soil_ph": "6.0–6.8",
+        "soil": "Well-drained, fertile; raised bed ideal",
+        "container_suitability": "Very good in 5–10 gal containers"
+      },
+      "watering": {
+        "general": "Aim for ~1–1.5 inches/week total (rain+irrigation) for most vegetables; more in containers and heat.",
+        "irrigation_notes": "Drip irrigation preferred; water early to reduce disease."
+      },
+      "fertility_strategy": [
+        {
+          "stage": "at_planting",
+          "products": [
+            "Espoma_TomatoTone_3-4-6",
+            "WormCastings"
+          ],
+          "dose": "3 Tbsp Tomato-tone + handful castings",
+          "timing": "transplant day"
+        },
+        {
+          "stage": "ongoing",
+          "products": [
+            "Espoma_TomatoTone_3-4-6"
+          ],
+          "dose": "Top-dress twice monthly per label",
+          "timing": "May–August"
+        },
+        {
+          "stage": "quick_feed",
+          "products": [
+            "NeptunesHarvest_Fish_2-4-1"
+          ],
+          "dose": "1/8 cup/gal every 3 weeks if growth slows",
+          "timing": "summer"
+        }
+      ],
+      "pest_disease": {
+        "key_pests": [
+          "aphids",
+          "spider mites",
+          "pepper maggot (regional)",
+          "hornworms (rare)"
+        ],
+        "key_diseases": [
+          "bacterial leaf spot",
+          "phytophthora (wet soils)"
+        ],
+        "prevention": [
+          "Avoid waterlogging; ensure drainage in solid-bottom planters (add drainage holes or overflow)."
+        ],
+        "images": {
+          "aphids": "icons/pests/aphid.svg",
+          "hornworms (rare)": "icons/pests/caterpillar.svg",
+          "bacterial leaf spot": "icons/pests/leafspot.svg"
+        }
+      },
+      "support_and_training": [
+        "Stake or cage if heavy fruiting or windy; prune minimal."
+      ],
+      "succession_and_rotation": {
+        "succession": [],
+        "rotation_notes": []
+      },
+      "harvest_and_use": {
+        "harvest_window": "~70–85 days from transplant; continuous until frost",
+        "harvest_method": "Cut fruit with scissors; avoid tearing stems",
+        "frequency": "Every 3–5 days once producing",
+        "storage": "Refrigerate 1–2 weeks; freeze whole or sliced"
+      },
+      "task_plan": [
+        {
+          "template": "pre_plant_soil_amendment",
+          "date_target": "2026-01-14",
+          "notes": "Apply compost, worm castings, and base fertilizer."
+        },
+        {
+          "template": "seed_start_indoor",
+          "date_target": "2026-01-27",
+          "tray_cell_size": "72",
+          "depth_in": 0.25,
+          "temp_F": 85,
+          "light_hours": 14,
+          "notes": "Heat mat recommended."
+        },
+        {
+          "template": "harden_off",
+          "start_date": "2026-04-21",
+          "duration_days": 10
+        },
+        {
+          "template": "transplant",
+          "date_target": "2026-04-28",
+          "spacing_in": "18–24",
+          "planting_hole_amendments": [
+            "Tomato-tone 3 Tbsp",
+            "Worm castings"
+          ],
+          "water_in_instructions": "Water in with half-strength fish fertilizer."
+        },
+        {
+          "template": "fertilize",
+          "date_target": "2026-05-12",
+          "product": "Espoma_TomatoTone_3-4-6",
+          "dose": "Top-dress twice monthly per label",
+          "method": "ring band",
+          "frequency_days": 14,
+          "stop_conditions": "Stop ~4 weeks before first frost"
+        },
+        {
+          "template": "pest_scout",
+          "date_target": "2026-05-19",
+          "targets": "aphids/spider mites",
+          "notes": "If mites appear, spray neem in evening; repeat weekly."
+        },
+        {
+          "template": "harvest",
+          "date_target": "2026-07-10",
+          "maturity_signs": "Firm peppers; green to orange",
+          "frequency_days": 4,
+          "storage_notes": "Use gloves if heat sensitive."
+        },
+        {
+          "template": "end_of_season_cleanup",
+          "date_target": "2026-11-06",
+          "notes": "Remove crop residues; discard diseased material; leave roots of legumes if applicable; prep space for fall/winter rotation."
+        },
+        {
+          "template": "fish_fertilizer",
+          "date_target": "2026-05-12",
+          "product": "fish_fertilizer_2_4_1",
+          "dose": "1–2 Tbsp/gal",
+          "frequency_days": 14,
+          "notes": "Rolling: next due is based on the last time you mark this complete."
+        },
+        {
+          "template": "tomato_tone_topdress",
+          "date_target": "2026-05-19",
+          "product": "tomato_tone_3_4_6",
+          "dose": "2 Tbsp/plant (in-ground) or 1 Tbsp/5-gal container",
+          "frequency_days": 35,
+          "notes": "Rolling: topdress cadence for flowering/fruiting; adjust if plants are overly leafy."
+        }
+      ],
+      "planting": {
+        "indoor_start_window": {
+          "start": "2026-01-27",
+          "end": "2026-02-10"
+        },
+        "transplant_window": {
+          "start": "2026-04-28",
+          "end": "2026-06-02"
+        },
+        "seed_depth_in": 0.25,
+        "germination": {
+          "temp_F": "80–90 (use heat mat)",
+          "days": "7–21"
+        },
+        "spacing_in": {
+          "in_row": "18–24",
+          "row": "24–36"
+        },
+        "notes": "Peppers stall in cool soil; wait for warm nights.",
+        "methods_supported": [
+          "transplant"
+        ]
+      },
+      "soil_preparation": {
+        "compost": "1–2 inches incorporated pre-plant; avoid burying stems in fresh compost pockets (even mixing)",
+        "worm_castings": "0.5–1 cup per transplant hole or 5–10% of container mix",
+        "base_fertilizer": "Dr. Earth 5-5-5 at 2–3 Tbsp/sq ft worked in 1–2 weeks pre-plant",
+        "calcium_support": "Gypsum 1–2 lbs/100 sq ft pre-plant if soil test indicates low Ca or if blossom-end rot risk; otherwise omit",
+        "phosphorus": "Bone meal/rock phosphate ONLY if soil test indicates low P; otherwise avoid adding P",
+        "notes": "Goal: steady N early, then bias toward K/Ca during flowering/fruiting; avoid excess N once fruit set begins."
+      },
+      "supplement_schedule": [
+        {
+          "stage": "post_transplant_week_2_to_flower",
+          "product": "fish_fertilizer_2_4_1",
+          "rate": "1 Tbsp/gal (young plants) → 2 Tbsp/gal (vigorous growth)",
+          "frequency": "Every 14 days",
+          "stop_conditions": "Reduce/stop if plants are overly leafy or dark green; resume at lower rate."
+        },
+        {
+          "stage": "first_flower_to_first_fruit_set",
+          "product": "tomato_tone_3_4_6",
+          "rate": "2 Tbsp per plant (in-ground) or 1 Tbsp per 5-gal container",
+          "frequency": "Every 4–6 weeks",
+          "notes": "Scratch in lightly and water. Use as primary in-season granular for tomatoes/peppers."
+        },
+        {
+          "stage": "heavy_fruiting",
+          "product": "fish_fertilizer_2_4_1",
+          "rate": "1 Tbsp/gal",
+          "frequency": "Every 21 days",
+          "notes": "Use as a light booster, not a primary feed, to avoid excess vegetative growth."
+        },
+        {
+          "stage": "mid_season_microbiology_optional",
+          "product": "compost_tea",
+          "frequency": "Every 4 weeks",
+          "notes": "Optional; prioritize consistent watering and mulch over teas if time constrained."
+        }
+      ],
+      "crop_profile": "solanaceae_fruiting",
+      "visual": {
+        "icon": "assets/icons/plants/pumpkin_spice_jalape_o_pepper.svg"
+      }
+    },
+    {
+      "name": "Mini Cucumber (Silor-type)",
+      "catalog_id": "2105",
+      "species": "Cucumis sativus",
+      "category": "vegetable",
+      "site_requirements": {
+        "sun": "Full sun (6–8+ hrs) unless noted",
+        "soil_ph": "6.0–7.0",
+        "soil": "Well-drained, fertile; raised bed ideal",
+        "container_suitability": "Good in 7–15 gal containers with trellis"
+      },
+      "watering": {
+        "general": "Aim for ~1–1.5 inches/week total (rain+irrigation) for most vegetables; more in containers and heat.",
+        "irrigation_notes": "Drip irrigation preferred; water early to reduce disease."
+      },
+      "fertility_strategy": [
+        {
+          "stage": "bed_prep",
+          "products": [
+            "BlackKow_Compost",
+            "DrEarth_5-5-5_AllPurpose"
+          ],
+          "dose": "Compost 1–2 in + moderate 5-5-5",
+          "timing": "late April/early May"
+        },
+        {
+          "stage": "fruiting",
+          "products": [
+            "NeptunesHarvest_Fish_2-4-1"
+          ],
+          "dose": "1/8 cup/gal every 2–3 weeks",
+          "timing": "June–August"
+        },
+        {
+          "stage": "avoid_over_N",
+          "products": [
+            "BloodMeal_12-0-0"
+          ],
+          "dose": "avoid unless severe deficiency",
+          "timing": "n/a"
+        }
+      ],
+      "pest_disease": {
+        "key_pests": [
+          "cucumber beetles",
+          "aphids",
+          "spider mites"
+        ],
+        "key_diseases": [
+          "powdery mildew",
+          "downy mildew",
+          "bacterial wilt (via beetles)"
+        ],
+        "prevention": [
+          "Use row cover until flowering if beetles are present (remove for pollination).",
+          "Provide strong airflow (trellis) and avoid wet leaves at night."
+        ],
+        "images": {
+          "cucumber beetles": "icons/pests/caterpillar.svg",
+          "aphids": "icons/pests/aphid.svg",
+          "powdery mildew": "icons/pests/mildew.svg",
+          "downy mildew": "icons/pests/mildew.svg"
+        }
+      },
+      "support_and_training": [
+        "Trellis strongly recommended; improves airflow and fruit quality.",
+        "Train vines; remove yellow leaves."
+      ],
+      "succession_and_rotation": {
+        "succession": [],
+        "rotation_notes": []
+      },
+      "harvest_and_use": {
+        "harvest_window": "~50–60 days; then steady",
+        "harvest_method": "Pick at 4–6 inches (mini types) before seeds enlarge",
+        "frequency": "Every 1–2 days at peak",
+        "storage": "Refrigerate 7–10 days; avoid coldest part of fridge"
+      },
+      "task_plan": [
+        {
+          "template": "pre_plant_soil_amendment",
+          "date_target": "2026-01-14",
+          "notes": "Apply compost, worm castings, and base fertilizer."
+        },
+        {
+          "template": "install_support",
+          "date_target": "2026-05-05",
+          "support_type": "trellis",
+          "notes": "Install before vines run."
+        },
+        {
+          "template": "direct_sow",
+          "date_target": "2026-05-05",
+          "depth_in": 1.0,
+          "spacing_in": "12",
+          "row_spacing_in": "36",
+          "succession_interval_days": 21
+        },
+        {
+          "template": "fertilize",
+          "date_target": "2026-05-26",
+          "product": "NeptunesHarvest_Fish_2-4-1",
+          "dose": "1/8 cup per gallon",
+          "method": "soil drench",
+          "frequency_days": 18,
+          "stop_conditions": "Stop after vines decline or ~4 weeks before first frost"
+        },
+        {
+          "template": "pest_scout",
+          "date_target": "2026-05-19",
+          "targets": "cucumber beetles, mildew",
+          "notes": "If beetles heavy, protect seedlings; if mildew begins, consider copper per label and improve airflow."
+        },
+        {
+          "template": "harvest",
+          "date_target": "2026-06-25",
+          "maturity_signs": "Firm, deep color, size appropriate",
+          "frequency_days": 2,
+          "storage_notes": "Harvest often to keep plants producing."
+        },
+        {
+          "template": "end_of_season_cleanup",
+          "date_target": "2026-11-06",
+          "notes": "Remove crop residues; discard diseased material; leave roots of legumes if applicable; prep space for fall/winter rotation."
+        },
+        {
+          "template": "fish_fertilizer",
+          "date_target": "2026-05-19",
+          "product": "fish_fertilizer_2_4_1",
+          "dose": "1–2 Tbsp/gal",
+          "frequency_days": 14,
+          "notes": "Rolling: next due is based on the last time you mark this complete."
+        }
+      ],
+      "planting": {
+        "direct_sow_window": {
+          "start": "2026-05-05",
+          "end": "2026-07-15"
+        },
+        "indoor_start_optional": {
+          "start": "2026-04-21",
+          "end": "2026-04-28",
+          "notes": "Start in 3–4\" pots; transplant carefully young."
+        },
+        "seed_depth_in": 1.0,
+        "germination": {
+          "temp_F": "70–95 (ideal 80–85)",
+          "days": "3–7"
+        },
+        "spacing_in": {
+          "in_row": "12",
+          "row": "36",
+          "trellised": "12\" spacing; bushier if not trellised"
+        },
+        "notes": "Warm soil critical; avoid cold snaps.",
+        "methods_supported": [
+          "transplant",
+          "direct_sow"
+        ]
+      },
+      "soil_preparation": {
+        "compost": "1–2 inches incorporated pre-plant; cucurbits respond strongly to rich soil",
+        "worm_castings": "0.5 cup per planting station or 5–10% container mix",
+        "base_fertilizer": "Dr. Earth 5-5-5 at 2–3 Tbsp/sq ft pre-plant",
+        "notes": "Keep soil evenly moist; avoid high N once vines set fruit to prevent excess foliage and poor fruit set."
+      },
+      "supplement_schedule": [
+        {
+          "stage": "vining_to_flower",
+          "product": "fish_fertilizer_2_4_1",
+          "rate": "1–2 Tbsp/gal",
+          "frequency": "Every 14 days"
+        },
+        {
+          "stage": "flowering_and_fruiting",
+          "product": "dr_earth_5_5_5",
+          "rate": "1 Tbsp/sq ft topdress OR 1 Tbsp per 5-gal container",
+          "frequency": "Every 4 weeks",
+          "notes": "Prefer modest topdress over frequent liquid N during fruiting."
+        },
+        {
+          "stage": "mid_season_optional",
+          "product": "compost_tea",
+          "frequency": "Every 4–6 weeks"
+        }
+      ],
+      "crop_profile": "cucurbits",
+      "visual": {
+        "icon": "assets/icons/plants/mini_cucumber_silor_type.svg"
+      }
+    },
+    {
+      "name": "Tall Telephone Shelling Pea",
+      "catalog_id": "3485",
+      "species": "Pisum sativum",
+      "category": "vegetable",
+      "site_requirements": {
+        "sun": "Full sun (6–8+ hrs) unless noted",
+        "soil_ph": "6.0–7.5",
+        "soil": "Well-drained, fertile; raised bed ideal",
+        "container_suitability": "Possible in deep trough containers with trellis; yields lower than beds"
+      },
+      "watering": {
+        "general": "Aim for ~1–1.5 inches/week total (rain+irrigation) for most vegetables; more in containers and heat.",
+        "irrigation_notes": "Drip irrigation preferred; water early to reduce disease."
+      },
+      "fertility_strategy": [
+        {
+          "stage": "seed_prep",
+          "products": [
+            "LegumeInoculant"
+          ],
+          "dose": "Coat seed per label",
+          "timing": "sowing day"
+        },
+        {
+          "stage": "bed_prep",
+          "products": [
+            "BlackKow_Compost"
+          ],
+          "dose": "Light compost",
+          "timing": "pre-sow"
+        },
+        {
+          "stage": "avoid_N",
+          "products": [
+            "BloodMeal_12-0-0"
+          ],
+          "dose": "avoid",
+          "timing": "n/a"
+        }
+      ],
+      "pest_disease": {
+        "key_pests": [
+          "aphids",
+          "pea weevil (occasional)"
+        ],
+        "key_diseases": [
+          "powdery mildew (late)",
+          "root rot (wet soils)"
+        ],
+        "prevention": [
+          "Good drainage; avoid waterlogged containers; trellis for airflow."
+        ],
+        "images": {
+          "aphids": "icons/pests/aphid.svg",
+          "powdery mildew (late)": "icons/pests/mildew.svg"
+        }
+      },
+      "support_and_training": [
+        "Tall trellis required (6+ ft)."
+      ],
+      "succession_and_rotation": {
+        "succession": [],
+        "rotation_notes": []
+      },
+      "harvest_and_use": {
+        "harvest_window": "~60–75 days; harvest before heat ends flowering",
+        "harvest_method": "Pick pods when full and bright green; shell immediately for sweetness",
+        "frequency": "Every 2–3 days",
+        "storage": "Refrigerate un-shelled pods 2–4 days; blanch/freeze"
+      },
+      "task_plan": [
+        {
+          "template": "pre_plant_soil_amendment",
+          "date_target": "2026-01-14",
+          "notes": "Apply compost, worm castings, and base fertilizer."
+        },
+        {
+          "template": "install_support",
+          "date_target": "2026-03-10",
+          "support_type": "tall trellis",
+          "notes": "Install at sowing to avoid root damage."
+        },
+        {
+          "template": "direct_sow",
+          "date_target": "2026-03-10",
+          "depth_in": 1.0,
+          "spacing_in": "2",
+          "row_spacing_in": "18–24",
+          "succession_interval_days": 10
+        },
+        {
+          "template": "pest_scout",
+          "date_target": "2026-03-24",
+          "targets": "aphids",
+          "notes": "If aphids present, spray strong water jet; neem as last resort on peas."
+        },
+        {
+          "template": "harvest",
+          "date_target": "2026-05-19",
+          "maturity_signs": "Pods plump; peas fill pod",
+          "frequency_days": 2,
+          "storage_notes": "Pick often to extend harvest."
+        },
+        {
+          "template": "cleanup_rotate",
+          "date_target": "2026-06-16",
+          "next_crop_suggestion": "Switch to cucumbers, peppers, or basil; peas finish in heat",
+          "sanitation_notes": "Remove vines; compost if healthy."
+        },
+        {
+          "template": "end_of_season_cleanup",
+          "date_target": "2026-11-06",
+          "notes": "Remove crop residues; discard diseased material; leave roots of legumes if applicable; prep space for fall/winter rotation."
+        },
+        {
+          "template": "fish_fertilizer",
+          "date_target": "2026-03-31",
+          "product": "fish_fertilizer_2_4_1",
+          "dose": "1–2 Tbsp/gal",
+          "frequency_days": 18,
+          "notes": "Rolling: next due is based on the last time you mark this complete."
+        }
+      ],
+      "planting": {
+        "direct_sow_window": {
+          "start": "2026-03-10",
+          "end": "2026-03-31"
+        },
+        "seed_depth_in": 1.0,
+        "germination": {
+          "temp_F": "40–75 (ideal 55–65)",
+          "days": "7–14"
+        },
+        "spacing_in": {
+          "in_row": "2",
+          "row": "18–24"
+        },
+        "notes": "Peas prefer cool weather; end production when temps rise.",
+        "methods_supported": [
+          "direct_sow",
+          "transplant"
+        ]
+      },
+      "soil_preparation": {
+        "compost": "1 inch incorporated pre-plant; too-rich soil can increase pest pressure but improves yields",
+        "worm_castings": "Light dusting in furrow or 0.25 cup per linear foot",
+        "base_fertilizer": "Dr. Earth 5-5-5 at 1–2 Tbsp/sq ft pre-plant",
+        "notes": "Aim for quick, steady growth; avoid large N spikes right before harvest to reduce excess nitrate accumulation concerns."
+      },
+      "supplement_schedule": [
+        {
+          "stage": "established_true_leaves",
+          "product": "fish_fertilizer_2_4_1",
+          "rate": "1 Tbsp/gal",
+          "frequency": "Every 14–21 days",
+          "stop_conditions": "Stop 7 days before harvest if desired for quality; optional."
+        },
+        {
+          "stage": "between_successions",
+          "product": "compost",
+          "rate": "0.5 inch topdress",
+          "frequency": "At each re-sow/replant cycle",
+          "notes": "Refreshes shallow-root zone for repeated cuts/succession."
+        }
+      ],
+      "crop_profile": "leafy_greens",
+      "visual": {
+        "icon": "assets/icons/plants/tall_telephone_shelling_pea.svg"
+      }
+    },
+    {
+      "name": "Candy Cane Sweet Pepper",
+      "catalog_id": "3542",
+      "species": "Capsicum annuum",
+      "category": "vegetable",
+      "site_requirements": {
+        "sun": "Full sun (6–8+ hrs) unless noted",
+        "soil_ph": "6.0–6.8",
+        "soil": "Well-drained, fertile; raised bed ideal",
+        "container_suitability": "Very good in 5–10 gal containers"
+      },
+      "watering": {
+        "general": "Aim for ~1–1.5 inches/week total (rain+irrigation) for most vegetables; more in containers and heat.",
+        "irrigation_notes": "Drip irrigation preferred; water early to reduce disease."
+      },
+      "fertility_strategy": [
+        {
+          "stage": "at_planting",
+          "products": [
+            "Espoma_TomatoTone_3-4-6",
+            "WormCastings"
+          ],
+          "dose": "3 Tbsp Tomato-tone + handful castings",
+          "timing": "transplant day"
+        },
+        {
+          "stage": "ongoing",
+          "products": [
+            "Espoma_TomatoTone_3-4-6"
+          ],
+          "dose": "Top-dress twice monthly per label",
+          "timing": "May–August"
+        },
+        {
+          "stage": "quick_feed",
+          "products": [
+            "NeptunesHarvest_Fish_2-4-1"
+          ],
+          "dose": "1/8 cup/gal every 3 weeks if growth slows",
+          "timing": "summer"
+        }
+      ],
+      "pest_disease": {
+        "key_pests": [
+          "aphids",
+          "spider mites",
+          "pepper maggot (regional)",
+          "hornworms (rare)"
+        ],
+        "key_diseases": [
+          "bacterial leaf spot",
+          "phytophthora (wet soils)"
+        ],
+        "prevention": [
+          "Avoid waterlogging; ensure drainage in solid-bottom planters (add drainage holes or overflow)."
+        ],
+        "images": {
+          "aphids": "icons/pests/aphid.svg",
+          "hornworms (rare)": "icons/pests/caterpillar.svg",
+          "bacterial leaf spot": "icons/pests/leafspot.svg"
+        }
+      },
+      "support_and_training": [],
+      "succession_and_rotation": {
+        "succession": [],
+        "rotation_notes": []
+      },
+      "harvest_and_use": {
+        "harvest_window": "~70–85 days from transplant; continues until frost",
+        "harvest_method": "Pick at green-striped stage or fully red for sweetness",
+        "frequency": "Every 3–5 days",
+        "storage": "Refrigerate 1–2 weeks; freeze sliced"
+      },
+      "task_plan": [
+        {
+          "template": "pre_plant_soil_amendment",
+          "date_target": "2026-01-14",
+          "notes": "Apply compost, worm castings, and base fertilizer."
+        },
+        {
+          "template": "seed_start_indoor",
+          "date_target": "2026-01-27",
+          "tray_cell_size": "72",
+          "depth_in": 0.25,
+          "temp_F": 85,
+          "light_hours": 14,
+          "notes": "Heat mat recommended."
+        },
+        {
+          "template": "harden_off",
+          "start_date": "2026-04-21",
+          "duration_days": 10
+        },
+        {
+          "template": "transplant",
+          "date_target": "2026-04-28",
+          "spacing_in": "18–24",
+          "planting_hole_amendments": [
+            "Tomato-tone 3 Tbsp",
+            "Worm castings"
+          ],
+          "water_in_instructions": "Water in with half-strength fish fertilizer."
+        },
+        {
+          "template": "fertilize",
+          "date_target": "2026-05-12",
+          "product": "Espoma_TomatoTone_3-4-6",
+          "dose": "Top-dress twice monthly per label",
+          "method": "ring band",
+          "frequency_days": 14,
+          "stop_conditions": "Stop ~4 weeks before first frost"
+        },
+        {
+          "template": "pest_scout",
+          "date_target": "2026-05-19",
+          "targets": "aphids/spider mites",
+          "notes": "If mites appear, spray neem in evening; repeat weekly."
+        },
+        {
+          "template": "harvest",
+          "date_target": "2026-07-10",
+          "maturity_signs": "Firm peppers; green to orange",
+          "frequency_days": 4,
+          "storage_notes": "Use gloves if heat sensitive."
+        },
+        {
+          "template": "end_of_season_cleanup",
+          "date_target": "2026-11-06",
+          "notes": "Remove crop residues; discard diseased material; leave roots of legumes if applicable; prep space for fall/winter rotation."
+        },
+        {
+          "template": "fish_fertilizer",
+          "date_target": "2026-05-12",
+          "product": "fish_fertilizer_2_4_1",
+          "dose": "1–2 Tbsp/gal",
+          "frequency_days": 14,
+          "notes": "Rolling: next due is based on the last time you mark this complete."
+        },
+        {
+          "template": "tomato_tone_topdress",
+          "date_target": "2026-05-19",
+          "product": "tomato_tone_3_4_6",
+          "dose": "2 Tbsp/plant (in-ground) or 1 Tbsp/5-gal container",
+          "frequency_days": 35,
+          "notes": "Rolling: topdress cadence for flowering/fruiting; adjust if plants are overly leafy."
+        }
+      ],
+      "planting": {
+        "indoor_start_window": {
+          "start": "2026-01-27",
+          "end": "2026-02-10"
+        },
+        "transplant_window": {
+          "start": "2026-04-28",
+          "end": "2026-06-02"
+        },
+        "seed_depth_in": 0.25,
+        "germination": {
+          "temp_F": "80–90",
+          "days": "7–21"
+        },
+        "spacing_in": {
+          "in_row": "18–24",
+          "row": "24–36"
+        },
+        "methods_supported": [
+          "transplant"
+        ]
+      },
+      "soil_preparation": {
+        "compost": "1–2 inches incorporated pre-plant; avoid burying stems in fresh compost pockets (even mixing)",
+        "worm_castings": "0.5–1 cup per transplant hole or 5–10% of container mix",
+        "base_fertilizer": "Dr. Earth 5-5-5 at 2–3 Tbsp/sq ft worked in 1–2 weeks pre-plant",
+        "calcium_support": "Gypsum 1–2 lbs/100 sq ft pre-plant if soil test indicates low Ca or if blossom-end rot risk; otherwise omit",
+        "phosphorus": "Bone meal/rock phosphate ONLY if soil test indicates low P; otherwise avoid adding P",
+        "notes": "Goal: steady N early, then bias toward K/Ca during flowering/fruiting; avoid excess N once fruit set begins."
+      },
+      "supplement_schedule": [
+        {
+          "stage": "post_transplant_week_2_to_flower",
+          "product": "fish_fertilizer_2_4_1",
+          "rate": "1 Tbsp/gal (young plants) → 2 Tbsp/gal (vigorous growth)",
+          "frequency": "Every 14 days",
+          "stop_conditions": "Reduce/stop if plants are overly leafy or dark green; resume at lower rate."
+        },
+        {
+          "stage": "first_flower_to_first_fruit_set",
+          "product": "tomato_tone_3_4_6",
+          "rate": "2 Tbsp per plant (in-ground) or 1 Tbsp per 5-gal container",
+          "frequency": "Every 4–6 weeks",
+          "notes": "Scratch in lightly and water. Use as primary in-season granular for tomatoes/peppers."
+        },
+        {
+          "stage": "heavy_fruiting",
+          "product": "fish_fertilizer_2_4_1",
+          "rate": "1 Tbsp/gal",
+          "frequency": "Every 21 days",
+          "notes": "Use as a light booster, not a primary feed, to avoid excess vegetative growth."
+        },
+        {
+          "stage": "mid_season_microbiology_optional",
+          "product": "compost_tea",
+          "frequency": "Every 4 weeks",
+          "notes": "Optional; prioritize consistent watering and mulch over teas if time constrained."
+        }
+      ],
+      "crop_profile": "solanaceae_fruiting",
+      "visual": {
+        "icon": "assets/icons/plants/candy_cane_sweet_pepper.svg"
+      }
+    },
+    {
+      "name": "Purple Plum Radish",
+      "catalog_id": "3825",
+      "species": "Raphanus sativus",
+      "category": "vegetable",
+      "site_requirements": {
+        "sun": "Full sun (6–8+ hrs) unless noted",
+        "soil_ph": "6.0–7.0",
+        "soil": "Well-drained, fertile; raised bed ideal",
+        "container_suitability": "Excellent in shallow containers (6–8 in)"
+      },
+      "watering": {
+        "general": "Aim for ~1–1.5 inches/week total (rain+irrigation) for most vegetables; more in containers and heat.",
+        "irrigation_notes": "Drip irrigation preferred; water early to reduce disease."
+      },
+      "fertility_strategy": [
+        {
+          "stage": "bed_prep",
+          "products": [
+            "BlackKow_Compost"
+          ],
+          "dose": "light compost",
+          "timing": "pre-sow"
+        }
+      ],
+      "pest_disease": {
+        "key_pests": [
+          "flea beetles",
+          "root maggots (rare)"
+        ],
+        "key_diseases": [
+          "damping off"
+        ],
+        "prevention": [],
+        "images": {
+          "flea beetles": "icons/pests/caterpillar.svg"
+        }
+      },
+      "support_and_training": [],
+      "succession_and_rotation": {
+        "succession": [],
+        "rotation_notes": []
+      },
+      "harvest_and_use": {
+        "harvest_window": "~25–35 days",
+        "harvest_method": "Pull promptly at size to avoid pithiness",
+        "frequency": "Harvest window 7–10 days per sowing",
+        "storage": "Refrigerate 1–2 weeks; keep tops removed"
+      },
+      "task_plan": [
+        {
+          "template": "pre_plant_soil_amendment",
+          "date_target": "2026-01-14",
+          "notes": "Apply compost, worm castings, and base fertilizer."
+        },
+        {
+          "template": "direct_sow",
+          "date_target": "2026-03-10",
+          "depth_in": 0.5,
+          "spacing_in": "1–2",
+          "row_spacing_in": "8–12",
+          "succession_interval_days": 10
+        },
+        {
+          "template": "harvest",
+          "date_target": "2026-04-21",
+          "maturity_signs": "Firm, 1–1.5 in roots",
+          "frequency_days": 3,
+          "storage_notes": "Harvest promptly."
+        },
+        {
+          "template": "end_of_season_cleanup",
+          "date_target": "2026-11-06",
+          "notes": "Remove crop residues; discard diseased material; leave roots of legumes if applicable; prep space for fall/winter rotation."
+        },
+        {
+          "template": "pest_scout",
+          "date_target": "2026-03-17",
+          "frequency_days": 7,
+          "notes": "Quick weekly inspection. If you see issues, add targeted control tasks."
+        }
+      ],
+      "planting": {
+        "spring_direct_sow_window": {
+          "start": "2026-03-10",
+          "end": "2026-05-05"
+        },
+        "fall_direct_sow_window": {
+          "start": "2026-07-15",
+          "end": "2026-09-15"
+        },
+        "seed_depth_in": 0.5,
+        "germination": {
+          "temp_F": "45–80 (ideal 55–70)",
+          "days": "3–7"
+        },
+        "spacing_in": {
+          "in_row": "2",
+          "row": "8–12"
+        },
+        "notes": "Fast crop; keep evenly moist to avoid pithy or hot roots.",
+        "methods_supported": [
+          "direct_sow"
+        ]
+      },
+      "soil_preparation": {
+        "compost": "0.5–1 inch incorporated; avoid fresh high-N amendments",
+        "worm_castings": "Light dusting in row; do not concentrate in clumps",
+        "base_fertilizer": "Dr. Earth 5-5-5 at 1 Tbsp/sq ft pre-plant (light)",
+        "phosphorus": "Bone meal/rock phosphate only if soil test indicates low P; otherwise omit",
+        "potassium_note": "Wood ash only if soil test indicates low K AND pH is not high; otherwise omit",
+        "notes": "Excess N causes hairy/forked roots and heavy tops; prioritize loose soil and consistent moisture."
+      },
+      "supplement_schedule": [
+        {
+          "stage": "thinning_or_true_leaf_stage",
+          "product": "fish_fertilizer_2_4_1",
+          "rate": "0.5–1 Tbsp/gal",
+          "frequency": "Once, optionally",
+          "notes": "Use only if growth is pale/slow; otherwise skip."
+        },
+        {
+          "stage": "mid_growth_optional",
+          "product": "compost_tea",
+          "frequency": "Once mid-cycle",
+          "notes": "Optional; do not overfeed."
+        }
+      ],
+      "crop_profile": "root_crops",
+      "visual": {
+        "icon": "assets/icons/plants/purple_plum_radish.svg"
+      }
+    },
+    {
+      "name": "Regiment Spinach",
+      "catalog_id": "3915",
+      "species": "Spinacia oleracea",
+      "category": "vegetable",
+      "site_requirements": {
+        "sun": "Full sun (6–8+ hrs) unless noted",
+        "soil_ph": "6.5–7.5",
+        "soil": "Well-drained, fertile; raised bed ideal",
+        "container_suitability": "Very good in containers; bolts faster in heat"
+      },
+      "watering": {
+        "general": "Aim for ~1–1.5 inches/week total (rain+irrigation) for most vegetables; more in containers and heat.",
+        "irrigation_notes": "Drip irrigation preferred; water early to reduce disease."
+      },
+      "fertility_strategy": [
+        {
+          "stage": "bed_prep",
+          "products": [
+            "BlackKow_Compost"
+          ],
+          "dose": "1 inch",
+          "timing": "pre-sow"
+        },
+        {
+          "stage": "regrowth_support",
+          "products": [
+            "NeptunesHarvest_Fish_2-4-1"
+          ],
+          "dose": "half strength after harvest",
+          "timing": "after each cut if doing cut-and-come-again"
+        }
+      ],
+      "pest_disease": {
+        "key_pests": [
+          "leaf miners",
+          "aphids"
+        ],
+        "key_diseases": [
+          "downy mildew",
+          "damping off"
+        ],
+        "prevention": [],
+        "images": {
+          "aphids": "icons/pests/aphid.svg",
+          "downy mildew": "icons/pests/mildew.svg"
+        }
+      },
+      "support_and_training": [],
+      "succession_and_rotation": {
+        "succession": [],
+        "rotation_notes": []
+      },
+      "harvest_and_use": {
+        "harvest_window": "~35–50 days; continuous cuttings in cool weather",
+        "harvest_method": "Harvest outer leaves or cut 1–2 inches above crown for regrowth",
+        "frequency": "Every 7–14 days for leaf harvest",
+        "storage": "Refrigerate 3–5 days; wash and spin dry"
+      },
+      "task_plan": [
+        {
+          "template": "pre_plant_soil_amendment",
+          "date_target": "2026-01-14",
+          "notes": "Apply compost, worm castings, and base fertilizer."
+        },
+        {
+          "template": "direct_sow",
+          "date_target": "2026-02-24",
+          "depth_in": 0.5,
+          "spacing_in": "dense then thin",
+          "row_spacing_in": "10–12",
+          "succession_interval_days": 14
+        },
+        {
+          "template": "thin_seedlings",
+          "date_target": "2026-03-31",
+          "final_spacing_in": "3–4"
+        },
+        {
+          "template": "harvest",
+          "date_target": "2026-05-05",
+          "maturity_signs": "Leaves 3–5 inches; before bolting",
+          "frequency_days": 10,
+          "storage_notes": "Cool quickly; keep dry."
+        },
+        {
+          "template": "end_of_season_cleanup",
+          "date_target": "2026-11-06",
+          "notes": "Remove crop residues; discard diseased material; leave roots of legumes if applicable; prep space for fall/winter rotation."
+        },
+        {
+          "template": "fish_fertilizer",
+          "date_target": "2026-03-17",
+          "product": "fish_fertilizer_2_4_1",
+          "dose": "1–2 Tbsp/gal",
+          "frequency_days": 18,
+          "notes": "Rolling: next due is based on the last time you mark this complete."
+        },
+        {
+          "template": "pest_scout",
+          "date_target": "2026-03-03",
+          "frequency_days": 7,
+          "notes": "Quick weekly inspection. If you see issues, add targeted control tasks."
+        }
+      ],
+      "planting": {
+        "spring_direct_sow_window": {
+          "start": "2026-02-24",
+          "end": "2026-04-21"
+        },
+        "fall_direct_sow_window": {
+          "start": "2026-08-15",
+          "end": "2026-09-30"
+        },
+        "seed_depth_in": 0.5,
+        "germination": {
+          "temp_F": "45–75 (ideal 55–65)",
+          "days": "7–14"
+        },
+        "spacing_in": {
+          "in_row": "3–4 after thinning",
+          "row": "10–12"
+        },
+        "notes": "Bolts in heat and long days; fall crop often better.",
+        "methods_supported": [
+          "direct_sow",
+          "transplant"
+        ]
+      },
+      "soil_preparation": {
+        "compost": "1 inch incorporated pre-plant; too-rich soil can increase pest pressure but improves yields",
+        "worm_castings": "Light dusting in furrow or 0.25 cup per linear foot",
+        "base_fertilizer": "Dr. Earth 5-5-5 at 1–2 Tbsp/sq ft pre-plant",
+        "notes": "Aim for quick, steady growth; avoid large N spikes right before harvest to reduce excess nitrate accumulation concerns."
+      },
+      "supplement_schedule": [
+        {
+          "stage": "established_true_leaves",
+          "product": "fish_fertilizer_2_4_1",
+          "rate": "1 Tbsp/gal",
+          "frequency": "Every 14–21 days",
+          "stop_conditions": "Stop 7 days before harvest if desired for quality; optional."
+        },
+        {
+          "stage": "between_successions",
+          "product": "compost",
+          "rate": "0.5 inch topdress",
+          "frequency": "At each re-sow/replant cycle",
+          "notes": "Refreshes shallow-root zone for repeated cuts/succession."
+        }
+      ],
+      "crop_profile": "leafy_greens",
+      "visual": {
+        "icon": "assets/icons/plants/regiment_spinach.svg"
+      }
+    },
+    {
+      "name": "Runaway Arugula",
+      "catalog_id": "2905",
+      "species": "Eruca sativa",
+      "category": "vegetable",
+      "site_requirements": {
+        "sun": "Full sun (6–8+ hrs) unless noted",
+        "soil_ph": "6.0–7.0",
+        "soil": "Well-drained, fertile; raised bed ideal",
+        "container_suitability": "Excellent"
+      },
+      "watering": {
+        "general": "Aim for ~1–1.5 inches/week total (rain+irrigation) for most vegetables; more in containers and heat.",
+        "irrigation_notes": "Drip irrigation preferred; water early to reduce disease."
+      },
+      "fertility_strategy": [
+        {
+          "stage": "bed_prep",
+          "products": [
+            "CompostTea",
+            "BlackKow_Compost"
+          ],
+          "dose": "compost light; tea optional",
+          "timing": "pre-sow and after cutting"
+        }
+      ],
+      "pest_disease": {
+        "key_pests": [
+          "flea beetles",
+          "aphids"
+        ],
+        "key_diseases": [],
+        "prevention": [],
+        "images": {
+          "flea beetles": "icons/pests/caterpillar.svg",
+          "aphids": "icons/pests/aphid.svg"
+        }
+      },
+      "support_and_training": [],
+      "succession_and_rotation": {
+        "succession": [],
+        "rotation_notes": []
+      },
+      "harvest_and_use": {
+        "harvest_window": "~20–35 days baby leaf; longer for mature",
+        "harvest_method": "Cut-and-come-again at 2–3 inches above soil",
+        "frequency": "Every 7–10 days in cool weather",
+        "storage": "Refrigerate 3–5 days; keep dry",
+        "notes": "Rustic types often have more serrated leaves and stronger flavor."
+      },
+      "task_plan": [
+        {
+          "template": "pre_plant_soil_amendment",
+          "date_target": "2026-01-14",
+          "notes": "Apply compost, worm castings, and base fertilizer."
+        },
+        {
+          "template": "direct_sow",
+          "date_target": "2026-02-24",
+          "depth_in": 0.25,
+          "spacing_in": "broadcast then thin",
+          "row_spacing_in": "10–12",
+          "succession_interval_days": 10
+        },
+        {
+          "template": "harvest",
+          "date_target": "2026-04-07",
+          "maturity_signs": "Leaves 2–4 inches; before flower stalk",
+          "frequency_days": 7,
+          "storage_notes": "Harvest morning for best texture."
+        },
+        {
+          "template": "end_of_season_cleanup",
+          "date_target": "2026-11-06",
+          "notes": "Remove crop residues; discard diseased material; leave roots of legumes if applicable; prep space for fall/winter rotation."
+        },
+        {
+          "template": "fish_fertilizer",
+          "date_target": "2026-03-17",
+          "product": "fish_fertilizer_2_4_1",
+          "dose": "1–2 Tbsp/gal",
+          "frequency_days": 18,
+          "notes": "Rolling: next due is based on the last time you mark this complete."
+        },
+        {
+          "template": "pest_scout",
+          "date_target": "2026-03-03",
+          "frequency_days": 7,
+          "notes": "Quick weekly inspection. If you see issues, add targeted control tasks."
+        }
+      ],
+      "planting": {
+        "spring_direct_sow_window": {
+          "start": "2026-02-24",
+          "end": "2026-05-19"
+        },
+        "fall_direct_sow_window": {
+          "start": "2026-08-01",
+          "end": "2026-10-01"
+        },
+        "seed_depth_in": 0.25,
+        "germination": {
+          "temp_F": "45–75",
+          "days": "3–7"
+        },
+        "spacing_in": {
+          "in_row": "4–6",
+          "row": "10–12"
+        },
+        "notes": "Bolts in heat; partial shade in late spring extends harvest.",
+        "methods_supported": [
+          "direct_sow",
+          "transplant"
+        ]
+      },
+      "soil_preparation": {
+        "compost": "1 inch incorporated pre-plant; too-rich soil can increase pest pressure but improves yields",
+        "worm_castings": "Light dusting in furrow or 0.25 cup per linear foot",
+        "base_fertilizer": "Dr. Earth 5-5-5 at 1–2 Tbsp/sq ft pre-plant",
+        "notes": "Aim for quick, steady growth; avoid large N spikes right before harvest to reduce excess nitrate accumulation concerns."
+      },
+      "supplement_schedule": [
+        {
+          "stage": "established_true_leaves",
+          "product": "fish_fertilizer_2_4_1",
+          "rate": "1 Tbsp/gal",
+          "frequency": "Every 14–21 days",
+          "stop_conditions": "Stop 7 days before harvest if desired for quality; optional."
+        },
+        {
+          "stage": "between_successions",
+          "product": "compost",
+          "rate": "0.5 inch topdress",
+          "frequency": "At each re-sow/replant cycle",
+          "notes": "Refreshes shallow-root zone for repeated cuts/succession."
+        }
+      ],
+      "crop_profile": "leafy_greens",
+      "visual": {
+        "icon": "assets/icons/plants/runaway_arugula.svg"
+      }
+    },
+    {
+      "name": "Rustic Arugula",
+      "catalog_id": "2910",
+      "species": "Eruca sativa",
+      "category": "vegetable",
+      "site_requirements": {
+        "sun": "Full sun (6–8+ hrs) unless noted",
+        "soil_ph": "6.0–7.0",
+        "soil": "Well-drained, fertile; raised bed ideal",
+        "container_suitability": "Excellent"
+      },
+      "watering": {
+        "general": "Aim for ~1–1.5 inches/week total (rain+irrigation) for most vegetables; more in containers and heat.",
+        "irrigation_notes": "Drip irrigation preferred; water early to reduce disease."
+      },
+      "fertility_strategy": [
+        {
+          "stage": "bed_prep",
+          "products": [
+            "CompostTea",
+            "BlackKow_Compost"
+          ],
+          "dose": "compost light; tea optional",
+          "timing": "pre-sow and after cutting"
+        }
+      ],
+      "pest_disease": {
+        "key_pests": [
+          "flea beetles",
+          "aphids"
+        ],
+        "key_diseases": [],
+        "prevention": [],
+        "images": {
+          "flea beetles": "icons/pests/caterpillar.svg",
+          "aphids": "icons/pests/aphid.svg"
+        }
+      },
+      "support_and_training": [],
+      "succession_and_rotation": {
+        "succession": [],
+        "rotation_notes": []
+      },
+      "harvest_and_use": {
+        "harvest_window": "~20–35 days baby leaf; longer for mature",
+        "harvest_method": "Cut-and-come-again at 2–3 inches above soil",
+        "frequency": "Every 7–10 days in cool weather",
+        "storage": "Refrigerate 3–5 days; keep dry",
+        "notes": "Rustic types often have more serrated leaves and stronger flavor."
+      },
+      "task_plan": [
+        {
+          "template": "pre_plant_soil_amendment",
+          "date_target": "2026-01-14",
+          "notes": "Apply compost, worm castings, and base fertilizer."
+        },
+        {
+          "template": "direct_sow",
+          "date_target": "2026-02-24",
+          "depth_in": 0.25,
+          "spacing_in": "broadcast then thin",
+          "row_spacing_in": "10–12",
+          "succession_interval_days": 10
+        },
+        {
+          "template": "harvest",
+          "date_target": "2026-04-07",
+          "maturity_signs": "Leaves 2–4 inches; before flower stalk",
+          "frequency_days": 7,
+          "storage_notes": "Harvest morning for best texture."
+        },
+        {
+          "template": "end_of_season_cleanup",
+          "date_target": "2026-11-06",
+          "notes": "Remove crop residues; discard diseased material; leave roots of legumes if applicable; prep space for fall/winter rotation."
+        },
+        {
+          "template": "fish_fertilizer",
+          "date_target": "2026-03-17",
+          "product": "fish_fertilizer_2_4_1",
+          "dose": "1–2 Tbsp/gal",
+          "frequency_days": 18,
+          "notes": "Rolling: next due is based on the last time you mark this complete."
+        },
+        {
+          "template": "pest_scout",
+          "date_target": "2026-03-03",
+          "frequency_days": 7,
+          "notes": "Quick weekly inspection. If you see issues, add targeted control tasks."
+        }
+      ],
+      "planting": {
+        "spring_direct_sow_window": {
+          "start": "2026-02-24",
+          "end": "2026-05-19"
+        },
+        "fall_direct_sow_window": {
+          "start": "2026-08-01",
+          "end": "2026-10-01"
+        },
+        "seed_depth_in": 0.25,
+        "germination": {
+          "temp_F": "45–75",
+          "days": "3–7"
+        },
+        "spacing_in": {
+          "in_row": "4–6",
+          "row": "10–12"
+        },
+        "notes": "Bolts in heat; partial shade in late spring extends harvest.",
+        "methods_supported": [
+          "direct_sow",
+          "transplant"
+        ]
+      },
+      "soil_preparation": {
+        "compost": "1 inch incorporated pre-plant; too-rich soil can increase pest pressure but improves yields",
+        "worm_castings": "Light dusting in furrow or 0.25 cup per linear foot",
+        "base_fertilizer": "Dr. Earth 5-5-5 at 1–2 Tbsp/sq ft pre-plant",
+        "notes": "Aim for quick, steady growth; avoid large N spikes right before harvest to reduce excess nitrate accumulation concerns."
+      },
+      "supplement_schedule": [
+        {
+          "stage": "established_true_leaves",
+          "product": "fish_fertilizer_2_4_1",
+          "rate": "1 Tbsp/gal",
+          "frequency": "Every 14–21 days",
+          "stop_conditions": "Stop 7 days before harvest if desired for quality; optional."
+        },
+        {
+          "stage": "between_successions",
+          "product": "compost",
+          "rate": "0.5 inch topdress",
+          "frequency": "At each re-sow/replant cycle",
+          "notes": "Refreshes shallow-root zone for repeated cuts/succession."
+        }
+      ],
+      "crop_profile": "leafy_greens",
+      "visual": {
+        "icon": "assets/icons/plants/rustic_arugula.svg"
+      }
+    },
+    {
+      "name": "Magic Mountain Tomato",
+      "catalog_id": "4202",
+      "species": "Solanum lycopersicum",
+      "category": "vegetable",
+      "site_requirements": {
+        "sun": "Full sun (6–8+ hrs) unless noted",
+        "soil_ph": "6.2–6.8",
+        "soil": "Well-drained, fertile; raised bed ideal",
+        "container_suitability": "Good in 10–20 gal containers; consistent watering critical"
+      },
+      "watering": {
+        "general": "Aim for ~1–1.5 inches/week total (rain+irrigation) for most vegetables; more in containers and heat.",
+        "irrigation_notes": "Drip irrigation preferred; water early to reduce disease."
+      },
+      "fertility_strategy": [
+        {
+          "stage": "bed_prep",
+          "products": [
+            "BlackKow_Compost",
+            "Garden_Gypsum"
+          ],
+          "dose": "Compost 1–2 in; gypsum per need",
+          "timing": "pre-transplant"
+        },
+        {
+          "stage": "at_planting",
+          "products": [
+            "Espoma_TomatoTone_3-4-6",
+            "WormCastings"
+          ],
+          "dose": "3 Tbsp Tomato-tone mixed in soil + handful castings",
+          "timing": "planting day"
+        },
+        {
+          "stage": "ongoing",
+          "products": [
+            "Espoma_TomatoTone_3-4-6"
+          ],
+          "dose": "Top-dress twice monthly per label",
+          "timing": "10–14 days after planting through August"
+        },
+        {
+          "stage": "supplement",
+          "products": [
+            "NeptunesHarvest_Fish_2-4-1"
+          ],
+          "dose": "1/8 cup/gal every 3–4 weeks if needed",
+          "timing": "summer"
+        }
+      ],
+      "pest_disease": {
+        "key_pests": [
+          "hornworms",
+          "aphids",
+          "stink bugs"
+        ],
+        "key_diseases": [
+          "early blight",
+          "septoria leaf spot",
+          "blossom-end rot (physiological)"
+        ],
+        "prevention": [
+          "Water consistently; avoid swings to reduce blossom-end rot.",
+          "Prune lower leaves off soil; keep foliage dry; consider copper preventively in wet spells.",
+          "Rotate nightshades if possible."
+        ],
+        "images": {
+          "hornworms": "icons/pests/caterpillar.svg",
+          "aphids": "icons/pests/aphid.svg",
+          "early blight": "icons/pests/leafspot.svg",
+          "septoria leaf spot": "icons/pests/leafspot.svg"
+        }
+      },
+      "support_and_training": [
+        "Use sturdy cage or stake + ties.",
+        "Prune to 1–2 leaders if indeterminate; remove suckers below first flower cluster for airflow.",
+        "Mulch heavily to stabilize moisture and reduce splash disease."
+      ],
+      "succession_and_rotation": {
+        "succession": [],
+        "rotation_notes": []
+      },
+      "harvest_and_use": {
+        "harvest_window": "~70–80 days from transplant; continues until frost",
+        "harvest_method": "Pick when fully colored; allow to finish at room temp if threatened by weather",
+        "frequency": "Every 2–4 days in peak",
+        "storage": "Store at room temp; refrigerate only fully ripe if necessary"
+      },
+      "task_plan": [
+        {
+          "template": "pre_plant_soil_amendment",
+          "date_target": "2026-01-14",
+          "notes": "Apply compost, worm castings, and base fertilizer."
+        },
+        {
+          "template": "seed_start_indoor",
+          "date_target": "2026-02-10",
+          "tray_cell_size": "72",
+          "depth_in": 0.25,
+          "temp_F": 75,
+          "light_hours": 14,
+          "notes": "Pot up to 3–4 inch pots when true leaves."
+        },
+        {
+          "template": "harden_off",
+          "start_date": "2026-04-14",
+          "duration_days": 10
+        },
+        {
+          "template": "install_support",
+          "date_target": "2026-04-21",
+          "support_type": "cage or stake",
+          "notes": "Install at transplant to avoid root damage."
+        },
+        {
+          "template": "transplant",
+          "date_target": "2026-04-21",
+          "spacing_in": "24–30",
+          "planting_hole_amendments": [
+            "Compost",
+            "Tomato-tone 3 Tbsp",
+            "Worm castings",
+            "Optional gypsum if calcium needed"
+          ],
+          "water_in_instructions": "Water deeply; mulch after soil warms."
+        },
+        {
+          "template": "fertilize",
+          "date_target": "2026-05-05",
+          "product": "Espoma_TomatoTone_3-4-6",
+          "dose": "Top-dress twice monthly per label",
+          "method": "ring band 3+ in from stem",
+          "frequency_days": 14,
+          "stop_conditions": "Stop after late August or when plants senesce"
+        },
+        {
+          "template": "prune_train",
+          "date_target": "2026-05-19",
+          "method": "Remove suckers; prune lower leaves",
+          "notes": "Increase airflow; reduce disease."
+        },
+        {
+          "template": "pest_scout",
+          "date_target": "2026-05-19",
+          "targets": "hornworms, leaf spots",
+          "notes": "Handpick hornworms; apply copper per label at first disease signs."
+        },
+        {
+          "template": "harvest",
+          "date_target": "2026-07-10",
+          "maturity_signs": "Fully colored; slight give",
+          "frequency_days": 3,
+          "storage_notes": "Do not refrigerate underripe tomatoes."
+        },
+        {
+          "template": "end_of_season_cleanup",
+          "date_target": "2026-11-06",
+          "notes": "Remove crop residues; discard diseased material; leave roots of legumes if applicable; prep space for fall/winter rotation."
+        },
+        {
+          "template": "fish_fertilizer",
+          "date_target": "2026-05-05",
+          "product": "fish_fertilizer_2_4_1",
+          "dose": "1–2 Tbsp/gal",
+          "frequency_days": 14,
+          "notes": "Rolling: next due is based on the last time you mark this complete."
+        },
+        {
+          "template": "tomato_tone_topdress",
+          "date_target": "2026-05-12",
+          "product": "tomato_tone_3_4_6",
+          "dose": "2 Tbsp/plant (in-ground) or 1 Tbsp/5-gal container",
+          "frequency_days": 35,
+          "notes": "Rolling: topdress cadence for flowering/fruiting; adjust if plants are overly leafy."
+        }
+      ],
+      "planting": {
+        "indoor_start_window": {
+          "start": "2026-02-10",
+          "end": "2026-02-24"
+        },
+        "transplant_window": {
+          "start": "2026-04-21",
+          "end": "2026-05-19"
+        },
+        "seed_depth_in": 0.25,
+        "germination": {
+          "temp_F": "70–85",
+          "days": "5–10"
+        },
+        "spacing_in": {
+          "in_row": "24–30",
+          "row": "36–48"
+        },
+        "notes": "Transplant after nights reliably >50–55°F; bury stem deeper for roots.",
+        "methods_supported": [
+          "transplant"
+        ]
+      },
+      "soil_preparation": {
+        "compost": "1–2 inches incorporated pre-plant; avoid burying stems in fresh compost pockets (even mixing)",
+        "worm_castings": "0.5–1 cup per transplant hole or 5–10% of container mix",
+        "base_fertilizer": "Dr. Earth 5-5-5 at 2–3 Tbsp/sq ft worked in 1–2 weeks pre-plant",
+        "calcium_support": "Gypsum 1–2 lbs/100 sq ft pre-plant if soil test indicates low Ca or if blossom-end rot risk; otherwise omit",
+        "phosphorus": "Bone meal/rock phosphate ONLY if soil test indicates low P; otherwise avoid adding P",
+        "notes": "Goal: steady N early, then bias toward K/Ca during flowering/fruiting; avoid excess N once fruit set begins."
+      },
+      "supplement_schedule": [
+        {
+          "stage": "post_transplant_week_2_to_flower",
+          "product": "fish_fertilizer_2_4_1",
+          "rate": "1 Tbsp/gal (young plants) → 2 Tbsp/gal (vigorous growth)",
+          "frequency": "Every 14 days",
+          "stop_conditions": "Reduce/stop if plants are overly leafy or dark green; resume at lower rate."
+        },
+        {
+          "stage": "first_flower_to_first_fruit_set",
+          "product": "tomato_tone_3_4_6",
+          "rate": "2 Tbsp per plant (in-ground) or 1 Tbsp per 5-gal container",
+          "frequency": "Every 4–6 weeks",
+          "notes": "Scratch in lightly and water. Use as primary in-season granular for tomatoes/peppers."
+        },
+        {
+          "stage": "heavy_fruiting",
+          "product": "fish_fertilizer_2_4_1",
+          "rate": "1 Tbsp/gal",
+          "frequency": "Every 21 days",
+          "notes": "Use as a light booster, not a primary feed, to avoid excess vegetative growth."
+        },
+        {
+          "stage": "mid_season_microbiology_optional",
+          "product": "compost_tea",
+          "frequency": "Every 4 weeks",
+          "notes": "Optional; prioritize consistent watering and mulch over teas if time constrained."
+        }
+      ],
+      "crop_profile": "solanaceae_fruiting",
+      "visual": {
+        "icon": "assets/icons/plants/magic_mountain_tomato.svg",
+        "photo": "assets/photos/plants/tomato.jpg"
+      }
+    },
+    {
+      "name": "Tomatoberry Cherry Tomato",
+      "catalog_id": "4317",
+      "species": "Solanum lycopersicum (cherry type)",
+      "category": "vegetable",
+      "site_requirements": {
+        "sun": "Full sun (6–8+ hrs) unless noted",
+        "soil_ph": "6.2–6.8",
+        "soil": "Well-drained, fertile; raised bed ideal",
+        "container_suitability": "Good in 10–20 gal containers; consistent watering critical"
+      },
+      "watering": {
+        "general": "Aim for ~1–1.5 inches/week total (rain+irrigation) for most vegetables; more in containers and heat.",
+        "irrigation_notes": "Drip irrigation preferred; water early to reduce disease."
+      },
+      "fertility_strategy": [
+        {
+          "stage": "bed_prep",
+          "products": [
+            "BlackKow_Compost",
+            "Garden_Gypsum"
+          ],
+          "dose": "Compost 1–2 in; gypsum per need",
+          "timing": "pre-transplant"
+        },
+        {
+          "stage": "at_planting",
+          "products": [
+            "Espoma_TomatoTone_3-4-6",
+            "WormCastings"
+          ],
+          "dose": "3 Tbsp Tomato-tone mixed in soil + handful castings",
+          "timing": "planting day"
+        },
+        {
+          "stage": "ongoing",
+          "products": [
+            "Espoma_TomatoTone_3-4-6"
+          ],
+          "dose": "Top-dress twice monthly per label",
+          "timing": "10–14 days after planting through August"
+        },
+        {
+          "stage": "supplement",
+          "products": [
+            "NeptunesHarvest_Fish_2-4-1"
+          ],
+          "dose": "1/8 cup/gal every 3–4 weeks if needed",
+          "timing": "summer"
+        }
+      ],
+      "pest_disease": {
+        "key_pests": [
+          "hornworms",
+          "aphids",
+          "stink bugs"
+        ],
+        "key_diseases": [
+          "early blight",
+          "septoria leaf spot",
+          "blossom-end rot (physiological)"
+        ],
+        "prevention": [
+          "Water consistently; avoid swings to reduce blossom-end rot.",
+          "Prune lower leaves off soil; keep foliage dry; consider copper preventively in wet spells.",
+          "Rotate nightshades if possible."
+        ],
+        "images": {
+          "hornworms": "icons/pests/caterpillar.svg",
+          "aphids": "icons/pests/aphid.svg",
+          "early blight": "icons/pests/leafspot.svg",
+          "septoria leaf spot": "icons/pests/leafspot.svg"
+        }
+      },
+      "support_and_training": [
+        "Use sturdy cage or stake + ties.",
+        "Prune to 1–2 leaders if indeterminate; remove suckers below first flower cluster for airflow.",
+        "Mulch heavily to stabilize moisture and reduce splash disease."
+      ],
+      "succession_and_rotation": {
+        "succession": [],
+        "rotation_notes": []
+      },
+      "harvest_and_use": {
+        "harvest_window": "~60–75 days from transplant; heavy continuous clusters",
+        "harvest_method": "Pick fully colored fruits or whole clusters",
+        "frequency": "Every 1–3 days in peak",
+        "storage": "Room temp best; refrigerate only fully ripe if necessary"
+      },
+      "task_plan": [
+        {
+          "template": "pre_plant_soil_amendment",
+          "date_target": "2026-01-14",
+          "notes": "Apply compost, worm castings, and base fertilizer."
+        },
+        {
+          "template": "seed_start_indoor",
+          "date_target": "2026-02-10",
+          "tray_cell_size": "72",
+          "depth_in": 0.25,
+          "temp_F": 75,
+          "light_hours": 14,
+          "notes": "Pot up to 3–4 inch pots when true leaves."
+        },
+        {
+          "template": "harden_off",
+          "start_date": "2026-04-14",
+          "duration_days": 10
+        },
+        {
+          "template": "install_support",
+          "date_target": "2026-04-21",
+          "support_type": "cage or stake",
+          "notes": "Install at transplant to avoid root damage."
+        },
+        {
+          "template": "transplant",
+          "date_target": "2026-04-21",
+          "spacing_in": "24–30",
+          "planting_hole_amendments": [
+            "Compost",
+            "Tomato-tone 3 Tbsp",
+            "Worm castings",
+            "Optional gypsum if calcium needed"
+          ],
+          "water_in_instructions": "Water deeply; mulch after soil warms."
+        },
+        {
+          "template": "fertilize",
+          "date_target": "2026-05-05",
+          "product": "Espoma_TomatoTone_3-4-6",
+          "dose": "Top-dress twice monthly per label",
+          "method": "ring band 3+ in from stem",
+          "frequency_days": 14,
+          "stop_conditions": "Stop after late August or when plants senesce"
+        },
+        {
+          "template": "prune_train",
+          "date_target": "2026-05-19",
+          "method": "Remove suckers; prune lower leaves",
+          "notes": "Increase airflow; reduce disease."
+        },
+        {
+          "template": "pest_scout",
+          "date_target": "2026-05-19",
+          "targets": "hornworms, leaf spots",
+          "notes": "Handpick hornworms; apply copper per label at first disease signs."
+        },
+        {
+          "template": "harvest",
+          "date_target": "2026-07-10",
+          "maturity_signs": "Fully colored; slight give",
+          "frequency_days": 3,
+          "storage_notes": "Do not refrigerate underripe tomatoes."
+        },
+        {
+          "template": "end_of_season_cleanup",
+          "date_target": "2026-11-06",
+          "notes": "Remove crop residues; discard diseased material; leave roots of legumes if applicable; prep space for fall/winter rotation."
+        },
+        {
+          "template": "fish_fertilizer",
+          "date_target": "2026-05-05",
+          "product": "fish_fertilizer_2_4_1",
+          "dose": "1–2 Tbsp/gal",
+          "frequency_days": 14,
+          "notes": "Rolling: next due is based on the last time you mark this complete."
+        },
+        {
+          "template": "tomato_tone_topdress",
+          "date_target": "2026-05-12",
+          "product": "tomato_tone_3_4_6",
+          "dose": "2 Tbsp/plant (in-ground) or 1 Tbsp/5-gal container",
+          "frequency_days": 35,
+          "notes": "Rolling: topdress cadence for flowering/fruiting; adjust if plants are overly leafy."
+        }
+      ],
+      "planting": {
+        "indoor_start_window": {
+          "start": "2026-02-10",
+          "end": "2026-02-24"
+        },
+        "transplant_window": {
+          "start": "2026-04-21",
+          "end": "2026-05-19"
+        },
+        "seed_depth_in": 0.25,
+        "germination": {
+          "temp_F": "70–85",
+          "days": "5–10"
+        },
+        "spacing_in": {
+          "in_row": "24–30",
+          "row": "36–48"
+        },
+        "notes": "Transplant after nights reliably >50–55°F; bury stem deeper for roots.",
+        "methods_supported": [
+          "transplant"
+        ]
+      },
+      "soil_preparation": {
+        "compost": "1–2 inches incorporated pre-plant; avoid burying stems in fresh compost pockets (even mixing)",
+        "worm_castings": "0.5–1 cup per transplant hole or 5–10% of container mix",
+        "base_fertilizer": "Dr. Earth 5-5-5 at 2–3 Tbsp/sq ft worked in 1–2 weeks pre-plant",
+        "calcium_support": "Gypsum 1–2 lbs/100 sq ft pre-plant if soil test indicates low Ca or if blossom-end rot risk; otherwise omit",
+        "phosphorus": "Bone meal/rock phosphate ONLY if soil test indicates low P; otherwise avoid adding P",
+        "notes": "Goal: steady N early, then bias toward K/Ca during flowering/fruiting; avoid excess N once fruit set begins."
+      },
+      "supplement_schedule": [
+        {
+          "stage": "post_transplant_week_2_to_flower",
+          "product": "fish_fertilizer_2_4_1",
+          "rate": "1 Tbsp/gal (young plants) → 2 Tbsp/gal (vigorous growth)",
+          "frequency": "Every 14 days",
+          "stop_conditions": "Reduce/stop if plants are overly leafy or dark green; resume at lower rate."
+        },
+        {
+          "stage": "first_flower_to_first_fruit_set",
+          "product": "tomato_tone_3_4_6",
+          "rate": "2 Tbsp per plant (in-ground) or 1 Tbsp per 5-gal container",
+          "frequency": "Every 4–6 weeks",
+          "notes": "Scratch in lightly and water. Use as primary in-season granular for tomatoes/peppers."
+        },
+        {
+          "stage": "heavy_fruiting",
+          "product": "fish_fertilizer_2_4_1",
+          "rate": "1 Tbsp/gal",
+          "frequency": "Every 21 days",
+          "notes": "Use as a light booster, not a primary feed, to avoid excess vegetative growth."
+        },
+        {
+          "stage": "mid_season_microbiology_optional",
+          "product": "compost_tea",
+          "frequency": "Every 4 weeks",
+          "notes": "Optional; prioritize consistent watering and mulch over teas if time constrained."
+        }
+      ],
+      "crop_profile": "solanaceae_fruiting",
+      "visual": {
+        "icon": "assets/icons/plants/tomatoberry_cherry_tomato.svg",
+        "photo": "assets/photos/plants/tomato.jpg"
+      }
+    },
+    {
+      "name": "Jersey Devil Plum Tomato",
+      "catalog_id": "4287",
+      "species": "Solanum lycopersicum (paste type)",
+      "category": "vegetable",
+      "site_requirements": {
+        "sun": "Full sun (6–8+ hrs) unless noted",
+        "soil_ph": "6.2–6.8",
+        "soil": "Well-drained, fertile; raised bed ideal",
+        "container_suitability": "Good in 10–20 gal containers; consistent watering critical"
+      },
+      "watering": {
+        "general": "Aim for ~1–1.5 inches/week total (rain+irrigation) for most vegetables; more in containers and heat.",
+        "irrigation_notes": "Drip irrigation preferred; water early to reduce disease."
+      },
+      "fertility_strategy": [
+        {
+          "stage": "bed_prep",
+          "products": [
+            "BlackKow_Compost",
+            "Garden_Gypsum"
+          ],
+          "dose": "Compost 1–2 in; gypsum per need",
+          "timing": "pre-transplant"
+        },
+        {
+          "stage": "at_planting",
+          "products": [
+            "Espoma_TomatoTone_3-4-6",
+            "WormCastings"
+          ],
+          "dose": "3 Tbsp Tomato-tone mixed in soil + handful castings",
+          "timing": "planting day"
+        },
+        {
+          "stage": "ongoing",
+          "products": [
+            "Espoma_TomatoTone_3-4-6"
+          ],
+          "dose": "Top-dress twice monthly per label",
+          "timing": "10–14 days after planting through August"
+        },
+        {
+          "stage": "supplement",
+          "products": [
+            "NeptunesHarvest_Fish_2-4-1"
+          ],
+          "dose": "1/8 cup/gal every 3–4 weeks if needed",
+          "timing": "summer"
+        }
+      ],
+      "pest_disease": {
+        "key_pests": [
+          "hornworms",
+          "aphids",
+          "stink bugs"
+        ],
+        "key_diseases": [
+          "early blight",
+          "septoria leaf spot",
+          "blossom-end rot (physiological)"
+        ],
+        "prevention": [
+          "Water consistently; avoid swings to reduce blossom-end rot.",
+          "Prune lower leaves off soil; keep foliage dry; consider copper preventively in wet spells.",
+          "Rotate nightshades if possible."
+        ],
+        "images": {
+          "hornworms": "icons/pests/caterpillar.svg",
+          "aphids": "icons/pests/aphid.svg",
+          "early blight": "icons/pests/leafspot.svg",
+          "septoria leaf spot": "icons/pests/leafspot.svg"
+        }
+      },
+      "support_and_training": [
+        "Use sturdy cage or stake + ties.",
+        "Prune to 1–2 leaders if indeterminate; remove suckers below first flower cluster for airflow.",
+        "Mulch heavily to stabilize moisture and reduce splash disease.",
+        "Paste types benefit from consistent watering to reduce blossom-end rot/cracking."
+      ],
+      "succession_and_rotation": {
+        "succession": [],
+        "rotation_notes": []
+      },
+      "harvest_and_use": {
+        "harvest_window": "~75–85 days from transplant; more concentrated ripening",
+        "harvest_method": "Pick when deep red; best for sauce/paste",
+        "frequency": "Every 2–4 days; may come in waves",
+        "storage": "Room temp then process; freeze whole or sauce"
+      },
+      "task_plan": [
+        {
+          "template": "pre_plant_soil_amendment",
+          "date_target": "2026-01-14",
+          "notes": "Apply compost, worm castings, and base fertilizer."
+        },
+        {
+          "template": "seed_start_indoor",
+          "date_target": "2026-02-10",
+          "tray_cell_size": "72",
+          "depth_in": 0.25,
+          "temp_F": 75,
+          "light_hours": 14,
+          "notes": "Pot up to 3–4 inch pots when true leaves."
+        },
+        {
+          "template": "harden_off",
+          "start_date": "2026-04-14",
+          "duration_days": 10
+        },
+        {
+          "template": "install_support",
+          "date_target": "2026-04-21",
+          "support_type": "cage or stake",
+          "notes": "Install at transplant to avoid root damage."
+        },
+        {
+          "template": "transplant",
+          "date_target": "2026-04-21",
+          "spacing_in": "24–30",
+          "planting_hole_amendments": [
+            "Compost",
+            "Tomato-tone 3 Tbsp",
+            "Worm castings",
+            "Optional gypsum if calcium needed"
+          ],
+          "water_in_instructions": "Water deeply; mulch after soil warms."
+        },
+        {
+          "template": "fertilize",
+          "date_target": "2026-05-05",
+          "product": "Espoma_TomatoTone_3-4-6",
+          "dose": "Top-dress twice monthly per label",
+          "method": "ring band 3+ in from stem",
+          "frequency_days": 14,
+          "stop_conditions": "Stop after late August or when plants senesce"
+        },
+        {
+          "template": "prune_train",
+          "date_target": "2026-05-19",
+          "method": "Remove suckers; prune lower leaves",
+          "notes": "Increase airflow; reduce disease."
+        },
+        {
+          "template": "pest_scout",
+          "date_target": "2026-05-19",
+          "targets": "hornworms, leaf spots",
+          "notes": "Handpick hornworms; apply copper per label at first disease signs."
+        },
+        {
+          "template": "harvest",
+          "date_target": "2026-07-10",
+          "maturity_signs": "Fully colored; slight give",
+          "frequency_days": 3,
+          "storage_notes": "Do not refrigerate underripe tomatoes."
+        },
+        {
+          "template": "end_of_season_cleanup",
+          "date_target": "2026-11-06",
+          "notes": "Remove crop residues; discard diseased material; leave roots of legumes if applicable; prep space for fall/winter rotation."
+        },
+        {
+          "template": "fish_fertilizer",
+          "date_target": "2026-05-05",
+          "product": "fish_fertilizer_2_4_1",
+          "dose": "1–2 Tbsp/gal",
+          "frequency_days": 14,
+          "notes": "Rolling: next due is based on the last time you mark this complete."
+        },
+        {
+          "template": "tomato_tone_topdress",
+          "date_target": "2026-05-12",
+          "product": "tomato_tone_3_4_6",
+          "dose": "2 Tbsp/plant (in-ground) or 1 Tbsp/5-gal container",
+          "frequency_days": 35,
+          "notes": "Rolling: topdress cadence for flowering/fruiting; adjust if plants are overly leafy."
+        }
+      ],
+      "planting": {
+        "indoor_start_window": {
+          "start": "2026-02-10",
+          "end": "2026-02-24"
+        },
+        "transplant_window": {
+          "start": "2026-04-21",
+          "end": "2026-05-19"
+        },
+        "seed_depth_in": 0.25,
+        "germination": {
+          "temp_F": "70–85",
+          "days": "5–10"
+        },
+        "spacing_in": {
+          "in_row": "24–30",
+          "row": "36–48"
+        },
+        "notes": "Transplant after nights reliably >50–55°F; bury stem deeper for roots.",
+        "methods_supported": [
+          "transplant"
+        ]
+      },
+      "soil_preparation": {
+        "compost": "1–2 inches incorporated pre-plant; avoid burying stems in fresh compost pockets (even mixing)",
+        "worm_castings": "0.5–1 cup per transplant hole or 5–10% of container mix",
+        "base_fertilizer": "Dr. Earth 5-5-5 at 2–3 Tbsp/sq ft worked in 1–2 weeks pre-plant",
+        "calcium_support": "Gypsum 1–2 lbs/100 sq ft pre-plant if soil test indicates low Ca or if blossom-end rot risk; otherwise omit",
+        "phosphorus": "Bone meal/rock phosphate ONLY if soil test indicates low P; otherwise avoid adding P",
+        "notes": "Goal: steady N early, then bias toward K/Ca during flowering/fruiting; avoid excess N once fruit set begins."
+      },
+      "supplement_schedule": [
+        {
+          "stage": "post_transplant_week_2_to_flower",
+          "product": "fish_fertilizer_2_4_1",
+          "rate": "1 Tbsp/gal (young plants) → 2 Tbsp/gal (vigorous growth)",
+          "frequency": "Every 14 days",
+          "stop_conditions": "Reduce/stop if plants are overly leafy or dark green; resume at lower rate."
+        },
+        {
+          "stage": "first_flower_to_first_fruit_set",
+          "product": "tomato_tone_3_4_6",
+          "rate": "2 Tbsp per plant (in-ground) or 1 Tbsp per 5-gal container",
+          "frequency": "Every 4–6 weeks",
+          "notes": "Scratch in lightly and water. Use as primary in-season granular for tomatoes/peppers."
+        },
+        {
+          "stage": "heavy_fruiting",
+          "product": "fish_fertilizer_2_4_1",
+          "rate": "1 Tbsp/gal",
+          "frequency": "Every 21 days",
+          "notes": "Use as a light booster, not a primary feed, to avoid excess vegetative growth."
+        },
+        {
+          "stage": "mid_season_microbiology_optional",
+          "product": "compost_tea",
+          "frequency": "Every 4 weeks",
+          "notes": "Optional; prioritize consistent watering and mulch over teas if time constrained."
+        }
+      ],
+      "crop_profile": "solanaceae_fruiting",
+      "visual": {
+        "icon": "assets/icons/plants/jersey_devil_plum_tomato.svg",
+        "photo": "assets/photos/plants/tomato.jpg"
+      }
+    },
+    {
+      "name": "Nira Broadleaf Chinese Chives",
+      "catalog_id": "6135",
+      "species": "Allium tuberosum",
+      "category": "herb",
+      "site_requirements": {
+        "sun": "Full sun to partial shade",
+        "soil_ph": "6.0–7.5",
+        "soil": "Well-drained, fertile; raised bed ideal",
+        "container_suitability": "Excellent perennial container herb"
+      },
+      "watering": {
+        "general": "Aim for ~1–1.5 inches/week total (rain+irrigation) for most vegetables; more in containers and heat.",
+        "irrigation_notes": "Drip irrigation preferred; water early to reduce disease."
+      },
+      "fertility_strategy": [
+        {
+          "stage": "spring_topdress",
+          "products": [
+            "BlackKow_Compost",
+            "WormCastings"
+          ],
+          "dose": "1 inch compost or handful castings per clump",
+          "timing": "early spring"
+        },
+        {
+          "stage": "after_cut",
+          "products": [
+            "NeptunesHarvest_Fish_2-4-1"
+          ],
+          "dose": "half-strength after harvest",
+          "timing": "after major cuttings"
+        }
+      ],
+      "pest_disease": {
+        "key_pests": [
+          "thrips (rare)"
+        ],
+        "key_diseases": [],
+        "prevention": [],
+        "images": {}
+      },
+      "support_and_training": [],
+      "succession_and_rotation": {
+        "succession": [],
+        "rotation_notes": []
+      },
+      "harvest_and_use": {
+        "harvest_window": "Begin light harvest once leaves are 8–10 inches; multiple harvests",
+        "harvest_method": "Cut leaves 1–2 inches above soil; allow regrowth",
+        "frequency": "Every 3–4 weeks in active growth",
+        "storage": "Refrigerate 5–7 days; freeze chopped"
+      },
+      "task_plan": [
+        {
+          "template": "pre_plant_soil_amendment",
+          "date_target": "2026-01-14",
+          "notes": "Apply compost, worm castings, and base fertilizer."
+        },
+        {
+          "template": "direct_sow",
+          "date_target": "2026-04-14",
+          "depth_in": 0.25,
+          "spacing_in": "6–10 clumps",
+          "row_spacing_in": "12",
+          "succession_interval_days": null
+        },
+        {
+          "template": "harvest",
+          "date_target": "2026-06-15",
+          "maturity_signs": "Leaves 8–10 inches",
+          "frequency_days": 21,
+          "storage_notes": "Do not cut all leaves on young plants first year."
+        },
+        {
+          "template": "end_of_season_cleanup",
+          "date_target": "2026-11-06",
+          "notes": "Remove crop residues; discard diseased material; leave roots of legumes if applicable; prep space for fall/winter rotation."
+        },
+        {
+          "template": "pest_scout",
+          "date_target": "2026-04-21",
+          "frequency_days": 7,
+          "notes": "Quick weekly inspection. If you see issues, add targeted control tasks."
+        }
+      ],
+      "planting": {
+        "indoor_start_optional": {
+          "start": "2026-01-27",
+          "end": "2026-02-10",
+          "notes": "Slow from seed; many growers transplant."
+        },
+        "direct_sow_window": {
+          "start": "2026-04-14",
+          "end": "2026-06-02"
+        },
+        "seed_depth_in": 0.25,
+        "germination": {
+          "temp_F": "65–80",
+          "days": "7–21"
+        },
+        "spacing_in": {
+          "clump": "6–10"
+        },
+        "notes": "Perennial; establish first year, heavier harvest later.",
+        "methods_supported": [
+          "transplant",
+          "direct_sow"
+        ]
+      },
+      "soil_preparation": {
+        "compost": "0.5–1 inch incorporated; herbs often prefer leaner soil",
+        "base_fertilizer": "Optional: Dr. Earth 5-5-5 at 0.5–1 Tbsp/sq ft if soil is poor",
+        "notes": "Over-fertilizing reduces flavor intensity in many herbs."
+      },
+      "supplement_schedule": [
+        {
+          "stage": "spring_flush_optional",
+          "product": "fish_fertilizer_2_4_1",
+          "rate": "0.5–1 Tbsp/gal",
+          "frequency": "Once in spring if weak growth",
+          "notes": "Otherwise rely on compost only."
+        }
+      ],
+      "crop_profile": "herbs_perennial_like",
+      "visual": {
+        "icon": "assets/icons/plants/nira_broadleaf_chinese_chives.svg"
+      }
+    },
+    {
+      "name": "Garden Thyme",
+      "catalog_id": "6240",
+      "species": "Thymus vulgaris",
+      "category": "herb",
+      "site_requirements": {
+        "sun": "Full sun",
+        "soil_ph": "6.0–8.0",
+        "soil": "Very well-drained; avoid waterlogged containers",
+        "container_suitability": "Excellent"
+      },
+      "watering": {
+        "general": "Aim for ~1–1.5 inches/week total (rain+irrigation) for most vegetables; more in containers and heat.",
+        "irrigation_notes": "Drip irrigation preferred; water early to reduce disease."
+      },
+      "fertility_strategy": [
+        {
+          "stage": "bed_prep",
+          "products": [
+            "BlackKow_Compost"
+          ],
+          "dose": "light compost only",
+          "timing": "pre-transplant"
+        },
+        {
+          "stage": "avoid_overfeed",
+          "products": [
+            "DrEarth_5-5-5_AllPurpose"
+          ],
+          "dose": "very light if growth weak",
+          "timing": "midseason only"
+        }
+      ],
+      "pest_disease": {
+        "key_pests": [
+          "spider mites (hot/dry indoor starts)"
+        ],
+        "key_diseases": [],
+        "prevention": [
+          "Avoid overwatering; ensure drainage and airflow."
+        ],
+        "images": {}
+      },
+      "support_and_training": [],
+      "succession_and_rotation": {
+        "succession": [],
+        "rotation_notes": []
+      },
+      "harvest_and_use": {
+        "harvest_window": "Light harvest first year once established; perennial/woody",
+        "harvest_method": "Snip sprigs; avoid cutting into old woody stems excessively",
+        "frequency": "As needed; best flavor before flowering",
+        "storage": "Dry or freeze; refrigerate fresh 7–10 days"
+      },
+      "task_plan": [
+        {
+          "template": "pre_plant_soil_amendment",
+          "date_target": "2026-01-14",
+          "notes": "Apply compost, worm castings, and base fertilizer."
+        },
+        {
+          "template": "seed_start_indoor",
+          "date_target": "2026-01-27",
+          "tray_cell_size": "128 or small cells",
+          "depth_in": 0.0,
+          "temp_F": 70,
+          "light_hours": 14,
+          "notes": "Surface sow; mist; do not cover heavily."
+        },
+        {
+          "template": "transplant",
+          "date_target": "2026-04-14",
+          "spacing_in": "12",
+          "planting_hole_amendments": [
+            "Light compost"
+          ],
+          "water_in_instructions": "Water in; then allow surface to dry slightly between waterings."
+        },
+        {
+          "template": "harvest",
+          "date_target": "2026-07-01",
+          "maturity_signs": "Bushy growth; stems pliable",
+          "frequency_days": 30,
+          "storage_notes": "Harvest before flowering for peak aroma."
+        },
+        {
+          "template": "end_of_season_cleanup",
+          "date_target": "2026-11-06",
+          "notes": "Remove crop residues; discard diseased material; leave roots of legumes if applicable; prep space for fall/winter rotation."
+        },
+        {
+          "template": "harden_off",
+          "date_target": "2026-04-04",
+          "notes": "Begin hardening off seedlings before transplanting."
+        },
+        {
+          "template": "pest_scout",
+          "date_target": "2026-04-21",
+          "frequency_days": 7,
+          "notes": "Quick weekly inspection. If you see issues, add targeted control tasks."
+        }
+      ],
+      "planting": {
+        "indoor_start_window": {
+          "start": "2026-01-27",
+          "end": "2026-02-10"
+        },
+        "transplant_window": {
+          "start": "2026-04-14",
+          "end": "2026-05-19"
+        },
+        "seed_depth_in": 0.0,
+        "germination": {
+          "temp_F": "65–75",
+          "days": "14–28"
+        },
+        "spacing_in": {
+          "in_row": "10–12",
+          "row": "12–18"
+        },
+        "notes": "Thyme seed is tiny; surface sow and press in; keep misted.",
+        "methods_supported": [
+          "transplant",
+          "direct_sow"
+        ]
+      },
+      "soil_preparation": {
+        "compost": "0.5–1 inch incorporated; herbs often prefer leaner soil",
+        "base_fertilizer": "Optional: Dr. Earth 5-5-5 at 0.5–1 Tbsp/sq ft if soil is poor",
+        "notes": "Over-fertilizing reduces flavor intensity in many herbs."
+      },
+      "supplement_schedule": [
+        {
+          "stage": "spring_flush_optional",
+          "product": "fish_fertilizer_2_4_1",
+          "rate": "0.5–1 Tbsp/gal",
+          "frequency": "Once in spring if weak growth",
+          "notes": "Otherwise rely on compost only."
+        }
+      ],
+      "crop_profile": "herbs_perennial_like",
+      "visual": {
+        "icon": "assets/icons/plants/garden_thyme.svg"
+      }
+    }
+  ],
+  "season_plan": {
+    "cool_season_spring": {
+      "target_window": {
+        "start": "2026-02-24",
+        "end": "2026-05-05"
+      },
+      "crops": [
+        "peas",
+        "spinach",
+        "arugula",
+        "radish",
+        "beets",
+        "carrots",
+        "broccoli (spring attempt)"
+      ],
+      "notes": "Use row covers for warmth and pest exclusion; plan succession sowing every 10–21 days."
+    },
+    "warm_season_summer": {
+      "target_window": {
+        "start": "2026-04-28",
+        "end": "2026-07-15"
+      },
+      "crops": [
+        "tomatoes",
+        "peppers",
+        "cucumbers",
+        "ground cherries"
+      ],
+      "notes": "Mulch heavily; monitor irrigation; start disease prevention early in humid stretches."
+    },
+    "cool_season_fall": {
+      "target_window": {
+        "start": "2026-07-15",
+        "end": "2026-09-30"
+      },
+      "crops": [
+        "broccoli (fall)",
+        "brussels sprouts",
+        "spinach (fall)",
+        "arugula (fall)",
+        "radish (fall)",
+        "beets (fall)",
+        "carrots (fall)"
+      ],
+      "notes": "Fall is prime for brassicas and greens in DC; use netting for caterpillars/harlequin bugs."
+    },
+    "season_end": {
+      "typical": "2026-10-30",
+      "actions": [
+        "Remove warm-season crops after frost",
+        "Clean supports",
+        "Topdress compost",
+        "Consider cover crop or mulch beds"
+      ]
+    }
+  },
+  "supplement_library": {
+    "compost": {
+      "purpose": "Organic matter, slow nutrients, microbial life",
+      "pre_plant_rate": "1–2 inches incorporated into top 6–8 inches",
+      "notes": "Foundation amendment for all beds and containers"
+    },
+    "worm_castings": {
+      "purpose": "Microbial inoculation, mild nutrients",
+      "rate": "5–10% of soil volume or 0.5–1 cup per transplant hole",
+      "frequency": "At planting; optional mid-season topdress"
+    },
+    "dr_earth_5_5_5": {
+      "purpose": "Balanced base fertility",
+      "rate": "2–3 Tbsp per sq ft (beds); 1–2 Tbsp per gallon (containers)",
+      "frequency": "At planting; reapply every 4–6 weeks if needed"
+    },
+    "fish_fertilizer_2_4_1": {
+      "purpose": "Fast nitrogen + micronutrients",
+      "rate": "1–2 Tbsp per gallon water",
+      "frequency": "Every 2–3 weeks during active growth"
+    },
+    "tomato_tone_3_4_6": {
+      "purpose": "Fruit-supporting nutrients",
+      "rate": "2 Tbsp per plant or 3–4 Tbsp per sq ft",
+      "frequency": "At planting and every 4–6 weeks"
+    },
+    "blood_meal_12_0_0": {
+      "purpose": "Rapid nitrogen correction",
+      "rate": "1 Tbsp per sq ft",
+      "frequency": "As needed only",
+      "caution": "Overuse causes leafy growth"
+    },
+    "bone_meal": {
+      "purpose": "Phosphorus & calcium",
+      "rate": "1–2 Tbsp per sq ft",
+      "notes": "Effective only if soil pH < 7"
+    },
+    "rock_phosphate": {
+      "purpose": "Long-term phosphorus",
+      "rate": "2–5 lbs per 100 sq ft",
+      "notes": "Soil-test dependent"
+    },
+    "gypsum": {
+      "purpose": "Calcium without raising pH",
+      "rate": "1–2 lbs per 100 sq ft"
+    },
+    "wood_ash": {
+      "purpose": "Potassium + raises pH",
+      "rate": "5–10 lbs per 1000 sq ft",
+      "caution": "Avoid if soil pH is high"
+    },
+    "legume_inoculant": {
+      "purpose": "Nitrogen fixation",
+      "rate": "Coat seed lightly before sowing"
+    },
+    "compost_tea": {
+      "purpose": "Microbial support",
+      "frequency": "Every 3–4 weeks"
+    }
+  },
+  "pest_control_library": {
+    "neem_oil": {
+      "targets": [
+        "aphids",
+        "mites",
+        "whiteflies"
+      ],
+      "rate": "1–2 Tbsp per gallon",
+      "frequency": "7–14 days"
+    },
+    "copper_fungicide": {
+      "targets": [
+        "fungal leaf diseases"
+      ],
+      "usage": "Preventive only"
+    },
+    "bt": {
+      "targets": [
+        "cabbage worms"
+      ],
+      "usage": "Apply to young larvae"
+    },
+    "spinosad": {
+      "targets": [
+        "thrips",
+        "caterpillars"
+      ],
+      "usage": "Rotate, avoid overuse"
+    },
+    "insecticidal_soap": {
+      "targets": [
+        "aphids",
+        "mites"
+      ],
+      "usage": "Direct contact spray"
+    },
+    "iron_phosphate_slug_bait": {
+      "targets": [
+        "slugs",
+        "snails"
+      ],
+      "usage": "Scatter per label"
+    },
+    "kaolin_clay": {
+      "targets": [
+        "cucumber beetles"
+      ],
+      "usage": "Deterrent coating"
+    }
+  },
+  "global_tasks": [
+    {
+      "template": "soil_test",
+      "date_target": "2026-01-11",
+      "notes": "Full soil test including pH and lead."
+    },
+    {
+      "template": "bed_amendment",
+      "date_target": "2026-01-18",
+      "notes": "Incorporate compost, worm castings, and base fertilizer."
+    },
+    {
+      "template": "late_summer_rotation_planning",
+      "date_target": "2026-08-16",
+      "notes": "Plan fall successions (greens, brassicas, roots). Clear space by pulling bolting/declining crops; start transplants where needed."
+    },
+    {
+      "template": "fall_bed_reconditioning",
+      "date_target": "2026-09-25",
+      "notes": "Topdress 0.5–1 inch compost; lightly work in; refresh container media (remove 20–30% and replace with compost + new mix)."
+    },
+    {
+      "template": "cover_crop_or_mulch_decision",
+      "date_target": "2026-10-05",
+      "notes": "Decide: sow a cover crop (e.g., winter rye + clover) OR apply 2–4 inches mulch/leaves for winter soil protection."
+    },
+    {
+      "template": "winter_mulch_application",
+      "date_target": "2026-11-06",
+      "notes": "After beds are cleared, apply 2–4 inches leaf mulch or straw; protect soil and suppress winter weeds; leave in place until spring."
+    },
+    {
+      "template": "end_of_season_soil_test_optional",
+      "date_target": "2026-11-13",
+      "notes": "Optional: soil test post-season to plan lime/sulfur and nutrient strategy for next year."
+    }
+  ],
+  "soil_management": {
+    "fall_reconditioning_notes": [
+      "Prioritize compost topdressing and residue removal to reduce disease carryover.",
+      "If you experienced significant disease (e.g., tomato blight), remove all debris and consider longer rotations in that bed/planter.",
+      "Cover crops are optional but beneficial for erosion control and organic matter; mulch is a simpler alternative in small beds/containers.",
+      "Avoid adding high-phosphorus amendments unless soil test indicates deficiency."
+    ]
+  },
+  "media": {
+    "pest_photos": {},
+    "disease_photos": {}
+  }
+}
