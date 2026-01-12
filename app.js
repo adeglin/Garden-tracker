@@ -627,7 +627,7 @@ function renderPlantList(data, state, main) {
 
     row.addEventListener("click", () => {
       state.selectedPlant = p.name;
-      renderPlantDetail(p, state, main);
+      renderPlantDetail(p, state, main, data);
       renderPlantList(data, state, main);
       renderTodayTasks(data, state, main);
       renderUpcomingTasks(data, state, main);
@@ -644,7 +644,7 @@ function renderPlantList(data, state, main) {
   });
 }
 
-function renderPlantDetail(plant, state, main) {
+function renderPlantDetail(plant, state, main, data) {
   const title = $("#plant-title", main);
   const detail = $("#plant-detail", main);
   if (!plant) {
@@ -696,7 +696,7 @@ function renderPlantDetail(plant, state, main) {
       input.addEventListener("change", () => {
         plan.methods[method] = input.checked;
         state.plantPlans.set(plant.name, { ...plan });
-        renderPlantDetail(plant, state, main);
+        renderPlantDetail(plant, state, main, data);
         renderTodayTasks(window.__gardenData, state, main);
         renderUpcomingTasks(window.__gardenData, state, main);
         renderCalendar(window.__gardenData, state, main);
@@ -724,7 +724,7 @@ function renderPlantDetail(plant, state, main) {
       input.addEventListener("change", () => {
         plan.seasons[season] = input.checked;
         state.plantPlans.set(plant.name, { ...plan });
-        renderPlantDetail(plant, state, main);
+        renderPlantDetail(plant, state, main, data);
         renderTodayTasks(window.__gardenData, state, main);
         renderUpcomingTasks(window.__gardenData, state, main);
         renderCalendar(window.__gardenData, state, main);
@@ -752,7 +752,7 @@ function renderPlantDetail(plant, state, main) {
       input.addEventListener("change", () => {
         plan.cycles[cycle] = input.checked;
         state.plantPlans.set(plant.name, { ...plan });
-        renderPlantDetail(plant, state, main);
+        renderPlantDetail(plant, state, main, data);
         renderTodayTasks(window.__gardenData, state, main);
         renderUpcomingTasks(window.__gardenData, state, main);
         renderCalendar(window.__gardenData, state, main);
@@ -906,7 +906,7 @@ function renderPlantDetail(plant, state, main) {
   } else {
     tasks.forEach(task => {
       previewList.appendChild(renderTaskRow(task, state, window.__gardenData, () => {
-        renderPlantDetail(plant, state, main);
+        renderPlantDetail(plant, state, main, data);
         renderTodayTasks(window.__gardenData, state, main);
         renderUpcomingTasks(window.__gardenData, state, main);
         renderCalendar(window.__gardenData, state, main);
@@ -995,7 +995,7 @@ function renderCalendar(data, state, main) {
     { key: "growing", label: "Growing", className: "stage-growing" },
     { key: "harvest", label: "Harvest", className: "stage-harvest" },
   ];
-  const stagePriority = ["harvest", "growing", "transplant", "sow", "indoors"];
+  const stagePriority = ["harvest", "transplant", "sow", "indoors", "growing"];
 
   const buildLegend = () => {
     if (!legend) return;
@@ -1083,6 +1083,7 @@ function renderCalendar(data, state, main) {
     scheduleMap.forEach(taskList => {
       const plantName = taskList[0]?.plant;
       if (!plantName) return;
+      const plant = data?.plants?.find(item => item.name === plantName);
       const byTemplate = {};
       taskList.forEach(task => {
         if (!byTemplate[task.template]) byTemplate[task.template] = [];
@@ -1104,32 +1105,52 @@ function renderCalendar(data, state, main) {
       const harvestEnd = harvestDates.length ? harvestDates[harvestDates.length - 1] : null;
       const yearEnd = new Date(year, 11, 31);
       const plantStages = [];
+      const method = taskList[0]?.method;
+      const season = taskList[0]?.season || "spring";
 
-      if (seedStart && transplant) {
+      let fallbackTransplant = transplant;
+      if (!fallbackTransplant && seedStart) {
+        const windowStart = plant ? parseDate(getPlantingWindowStart(plant, "transplant", season)) : null;
+        fallbackTransplant = windowStart || addDays(seedStart, 28);
+      }
+
+      let fallbackSow = directSow;
+      if (!fallbackSow && plant && method === "direct_sow") {
+        fallbackSow = parseDate(getPlantingWindowStart(plant, "direct_sow", season));
+      }
+
+      if (seedStart && fallbackTransplant) {
         plantStages.push({
           key: "indoors",
           start: clampDate(seedStart, year),
-          end: clampDate(transplant, year),
+          end: clampDate(fallbackTransplant, year),
+        });
+      } else if (!seedStart && !fallbackSow && fallbackTransplant) {
+        const indoorStart = addDays(fallbackTransplant, -28);
+        plantStages.push({
+          key: "indoors",
+          start: clampDate(indoorStart, year),
+          end: clampDate(fallbackTransplant, year),
         });
       }
 
-      if (transplant) {
+      if (fallbackTransplant) {
         plantStages.push({
           key: "transplant",
-          start: clampDate(transplant, year),
-          end: clampDate(addDays(transplant, 7), year),
+          start: clampDate(fallbackTransplant, year),
+          end: clampDate(addDays(fallbackTransplant, 7), year),
         });
       }
 
-      if (directSow) {
+      if (fallbackSow) {
         plantStages.push({
           key: "sow",
-          start: clampDate(directSow, year),
-          end: clampDate(addDays(directSow, 7), year),
+          start: clampDate(fallbackSow, year),
+          end: clampDate(addDays(fallbackSow, 7), year),
         });
       }
 
-      const growStart = transplant || directSow;
+      const growStart = fallbackTransplant || fallbackSow;
       if (growStart) {
         const growEnd = harvestStart || yearEnd;
         if (growEnd >= growStart) {
@@ -1286,7 +1307,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     renderPlantList(data, state, main);
-    renderPlantDetail(null, state, main);
+    renderPlantDetail(null, state, main, data);
     renderTodayTasks(data, state, main);
     renderUpcomingTasks(data, state, main);
     renderCalendar(data, state, main);
