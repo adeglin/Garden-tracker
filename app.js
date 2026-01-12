@@ -1,4 +1,8 @@
 const DATA_URL = `garden_master_full.json?v=${Date.now()}`;
+const STORAGE_KEYS = {
+  taskNotes: "garden_task_notes_v1",
+  scheduleShifts: "garden_schedule_shifts_v1",
+};
 
 function $(sel, root = document) { return root.querySelector(sel); }
 function el(tag, cls, text) {
@@ -56,7 +60,29 @@ function formatDate(date) {
   return date.toISOString().slice(0, 10);
 }
 
-function getPlantPlanDefaults(plant) {
+function loadStoredJSON(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return fallback;
+    return JSON.parse(raw);
+  } catch {
+    return fallback;
+  }
+}
+
+function saveStoredJSON(key, value) {
+  localStorage.setItem(key, JSON.stringify(value));
+}
+
+function makeScheduleKey(plantName, method, season, cycle) {
+  return [plantName, method, season, cycle].join("||");
+}
+
+function makeTaskKey(task) {
+  return [task.scheduleKey, task.template || task.title, task.baseDate || task.date].join("||");
+}
+
+function getAvailableMethods(plant) {
   const methodsSupported = plant?.planting?.methods_supported || [];
   const hasDirectSowTask = (plant.task_plan || []).some(t => t.template === "direct_sow");
   const hasTransplantTask = (plant.task_plan || []).some(t => t.template === "transplant");
@@ -64,7 +90,10 @@ function getPlantPlanDefaults(plant) {
   if (hasDirectSowTask) availableMethods.add("direct_sow");
   if (hasTransplantTask) availableMethods.add("transplant");
   if (!availableMethods.size) availableMethods.add("direct_sow");
+  return [...availableMethods];
+}
 
+function getAvailableSeasons(plant) {
   const seasons = new Set();
   if (plant?.planting?.spring || plant?.planting?.spring_direct_sow_window || plant?.planting?.spring_transplant_window) {
     seasons.add("spring");
@@ -73,19 +102,25 @@ function getPlantPlanDefaults(plant) {
     seasons.add("fall");
   }
   if (!seasons.size) seasons.add("spring");
+  return [...seasons];
+}
 
-  const methods = [...availableMethods];
+function getPlantPlanDefaults(plant) {
+  const methods = getAvailableMethods(plant);
+  const seasons = getAvailableSeasons(plant);
+  const interval = getSuccessionIntervalDays(plant);
+  const cycles = interval ? { 1: true, 2: false, 3: false } : { 1: true };
   return {
     methods: Object.fromEntries(methods.map(m => [m, m === methods[0]])),
     seasons: Object.fromEntries([...seasons].map(s => [s, s === "spring"])),
-    cycles: { 1: true, 2: false, 3: false },
+    cycles,
   };
 }
 
 function getSuccessionIntervalDays(plant) {
   const interval = (plant.task_plan || []).find(t => t.succession_interval_days)?.succession_interval_days;
   if (interval) return interval;
-  return 21;
+  return null;
 }
 
 function getPlantingWindowStart(plant, method, season) {
@@ -125,15 +160,17 @@ function getBasePlanAnchor(plant, method) {
   return null;
 }
 
-function buildScheduleForPlan(plant, method, season, cycleIndex) {
+function buildScheduleForPlan(plant, method, season, cycleIndex, extraShiftDays = 0, scheduleKey = "") {
   const plan = plant.task_plan || [];
   const baseAnchor = getBasePlanAnchor(plant, method);
   const seasonAnchor = getPlantingWindowStart(plant, method, season) || baseAnchor;
   const baseDate = parseDate(baseAnchor);
   const targetDate = parseDate(seasonAnchor);
-  const successionOffset = (cycleIndex - 1) * getSuccessionIntervalDays(plant);
+  const successionInterval = getSuccessionIntervalDays(plant) || 21;
+  const successionOffset = (cycleIndex - 1) * successionInterval;
   const shiftDays = baseDate && targetDate ? Math.round((targetDate - baseDate) / 86400000) : 0;
-  const totalShift = shiftDays + successionOffset;
+  const baseShift = shiftDays + successionOffset;
+  const totalShift = baseShift + extraShiftDays;
 
   const excludeForDirect = new Set(["seed_start_indoor", "harden_off", "transplant"]);
   const excludeForTransplant = new Set(["direct_sow"]);
@@ -148,14 +185,18 @@ function buildScheduleForPlan(plant, method, season, cycleIndex) {
       const base = normalizeTask(task, plant.name);
       const date = parseDate(base.date);
       if (!date) return null;
+      const planned = addDays(date, baseShift);
       const adjusted = addDays(date, totalShift);
       return {
         ...base,
         date: formatDate(adjusted),
+        plannedDate: formatDate(planned),
+        baseDate: base.date,
         dt: adjusted,
         method,
         season,
         cycle: cycleIndex,
+        scheduleKey,
       };
     })
     .filter(Boolean);
@@ -174,12 +215,101 @@ function collectPlannedTasks(data, state) {
     selectedMethods.forEach(method => {
       selectedSeasons.forEach(season => {
         selectedCycles.forEach(cycleIndex => {
-          tasks.push(...buildScheduleForPlan(plant, method, season, cycleIndex));
+          const scheduleKey = makeScheduleKey(plant.name, method, season, cycleIndex);
+          const extraShiftDays = state.scheduleShifts?.[scheduleKey] || 0;
+          tasks.push(...buildScheduleForPlan(plant, method, season, cycleIndex, extraShiftDays, scheduleKey));
         });
       });
     });
   });
   return tasks;
+}
+
+function renderTaskRow(task, state, onUpdate) {
+  const row = el("div", "row task-row");
+  row.tabIndex = 0;
+  row.setAttribute("role", "button");
+  row.setAttribute("aria-expanded", "false");
+
+  const top = el("div", "row-top");
+  const info = el("div");
+  info.appendChild(el("div", "row-title", task.title));
+  info.appendChild(el("div", "row-meta", `${task.plant} · ${task.season} · ${task.method.replace("_", " ")} · Succession ${task.cycle}`));
+  top.appendChild(info);
+
+  const badge = el("span", "badge", task.date);
+  if (task.dt) {
+    const now = new Date();
+    const startOfToday = new Date(now);
+    startOfToday.setHours(0, 0, 0, 0);
+    if (task.dt < startOfToday) {
+      badge.classList.add("overdue");
+    } else {
+      badge.classList.add("due");
+    }
+  }
+  top.appendChild(badge);
+  row.appendChild(top);
+
+  const details = el("div", "row-details");
+  const detailGrid = el("div", "detail-grid");
+  detailGrid.appendChild(el("div", "label", "Planned"));
+  detailGrid.appendChild(el("div", "muted", task.plannedDate || task.date));
+  detailGrid.appendChild(el("div", "label", "Method"));
+  detailGrid.appendChild(el("div", "muted", task.method.replace("_", " ")));
+  detailGrid.appendChild(el("div", "label", "Season"));
+  detailGrid.appendChild(el("div", "muted", task.season));
+  detailGrid.appendChild(el("div", "label", "Succession"));
+  detailGrid.appendChild(el("div", "muted", `Succession ${task.cycle}`));
+  details.appendChild(detailGrid);
+
+  const controls = el("div", "row-controls");
+  const dateLabel = el("label", "label", "Reschedule");
+  const dateInput = el("input", "input");
+  dateInput.type = "date";
+  dateInput.value = task.date;
+  dateInput.addEventListener("change", () => {
+    const newDate = parseDate(dateInput.value);
+    const plannedDate = parseDate(task.plannedDate || task.date);
+    if (!newDate || !plannedDate) return;
+    const shiftDays = Math.round((newDate - plannedDate) / 86400000);
+    state.scheduleShifts = { ...state.scheduleShifts, [task.scheduleKey]: shiftDays };
+    saveStoredJSON(STORAGE_KEYS.scheduleShifts, state.scheduleShifts);
+    onUpdate?.();
+  });
+  controls.appendChild(dateLabel);
+  controls.appendChild(dateInput);
+
+  const notesLabel = el("label", "label", "Notes");
+  const notesInput = el("textarea", "input");
+  notesInput.rows = 3;
+  const taskKey = makeTaskKey(task);
+  notesInput.value = state.taskNotes?.[taskKey] || "";
+  notesInput.addEventListener("input", () => {
+    state.taskNotes = { ...state.taskNotes, [taskKey]: notesInput.value };
+    saveStoredJSON(STORAGE_KEYS.taskNotes, state.taskNotes);
+  });
+  controls.appendChild(notesLabel);
+  controls.appendChild(notesInput);
+  details.appendChild(controls);
+  row.appendChild(details);
+
+  const toggleExpanded = () => {
+    const expanded = row.classList.toggle("expanded");
+    row.setAttribute("aria-expanded", String(expanded));
+  };
+  row.addEventListener("click", event => {
+    if (event.target.closest("input, textarea, label, button, select")) return;
+    toggleExpanded();
+  });
+  row.addEventListener("keydown", event => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      toggleExpanded();
+    }
+  });
+
+  return row;
 }
 
 function renderPlantList(data, state, main) {
@@ -212,6 +342,7 @@ function renderPlantList(data, state, main) {
       renderPlantDetail(p, state, main);
       renderPlantList(data, state, main);
       renderTodayTasks(data, state, main);
+      renderUpcomingTasks(data, state, main);
       renderCalendar(data, state, main);
     });
     row.addEventListener("keydown", event => {
@@ -259,77 +390,191 @@ function renderPlantDetail(plant, state, main) {
   const methodRow = el("div", "row");
   methodRow.appendChild(el("div", "row-title", "Method"));
   const methodOptions = el("div", "row-actions");
-  ["direct_sow", "transplant"].forEach(method => {
-    if (plant?.planting?.methods_supported && !plant.planting.methods_supported.includes(method)) return;
-    const label = el("label", "toggle");
-    const input = el("input");
-    input.type = "checkbox";
-    input.checked = Boolean(plan.methods[method]);
-    input.addEventListener("change", () => {
-      plan.methods[method] = input.checked;
-      state.plantPlans.set(plant.name, { ...plan });
-      renderPlantDetail(plant, state, main);
-      renderTodayTasks(window.__gardenData, state, main);
-      renderCalendar(window.__gardenData, state, main);
+  const availableMethods = getAvailableMethods(plant);
+  if (availableMethods.length <= 1) {
+    const methodLabel = availableMethods[0] ? availableMethods[0].replace("_", " ") : "Not specified";
+    methodOptions.appendChild(el("div", "muted", methodLabel));
+  } else {
+    availableMethods.forEach(method => {
+      const label = el("label", "toggle");
+      const input = el("input");
+      input.type = "checkbox";
+      input.checked = Boolean(plan.methods[method]);
+      input.addEventListener("change", () => {
+        plan.methods[method] = input.checked;
+        state.plantPlans.set(plant.name, { ...plan });
+        renderPlantDetail(plant, state, main);
+        renderTodayTasks(window.__gardenData, state, main);
+        renderUpcomingTasks(window.__gardenData, state, main);
+        renderCalendar(window.__gardenData, state, main);
+      });
+      label.appendChild(input);
+      label.appendChild(el("span", null, method.replace("_", " ")));
+      methodOptions.appendChild(label);
     });
-    label.appendChild(input);
-    label.appendChild(el("span", null, method.replace("_", " ")));
-    methodOptions.appendChild(label);
-  });
+  }
   methodRow.appendChild(methodOptions);
   planSection.appendChild(methodRow);
 
   const seasonRow = el("div", "row");
   seasonRow.appendChild(el("div", "row-title", "Season"));
   const seasonOptions = el("div", "row-actions");
-  ["spring", "fall"].forEach(season => {
-    const hasSeason = plant?.planting?.[season] || plant?.planting?.[`${season}_direct_sow_window`] || plant?.planting?.[`${season}_transplant_window`];
-    if (!hasSeason) return;
-    const label = el("label", "toggle");
-    const input = el("input");
-    input.type = "checkbox";
-    input.checked = Boolean(plan.seasons[season]);
-    input.addEventListener("change", () => {
-      plan.seasons[season] = input.checked;
-      state.plantPlans.set(plant.name, { ...plan });
-      renderPlantDetail(plant, state, main);
-      renderTodayTasks(window.__gardenData, state, main);
-      renderCalendar(window.__gardenData, state, main);
+  const availableSeasons = getAvailableSeasons(plant);
+  if (availableSeasons.length <= 1) {
+    seasonOptions.appendChild(el("div", "muted", availableSeasons[0] || "Not specified"));
+  } else {
+    availableSeasons.forEach(season => {
+      const label = el("label", "toggle");
+      const input = el("input");
+      input.type = "checkbox";
+      input.checked = Boolean(plan.seasons[season]);
+      input.addEventListener("change", () => {
+        plan.seasons[season] = input.checked;
+        state.plantPlans.set(plant.name, { ...plan });
+        renderPlantDetail(plant, state, main);
+        renderTodayTasks(window.__gardenData, state, main);
+        renderUpcomingTasks(window.__gardenData, state, main);
+        renderCalendar(window.__gardenData, state, main);
+      });
+      label.appendChild(input);
+      label.appendChild(el("span", null, season));
+      seasonOptions.appendChild(label);
     });
-    label.appendChild(input);
-    label.appendChild(el("span", null, season));
-    seasonOptions.appendChild(label);
-  });
+  }
   seasonRow.appendChild(seasonOptions);
   planSection.appendChild(seasonRow);
 
   const cycleRow = el("div", "row");
-  cycleRow.appendChild(el("div", "row-title", "Cycles"));
+  cycleRow.appendChild(el("div", "row-title", "Successions"));
   const cycleOptions = el("div", "row-actions");
-  [1, 2, 3].forEach(cycle => {
-    const label = el("label", "toggle");
-    const input = el("input");
-    input.type = "checkbox";
-    input.checked = Boolean(plan.cycles[cycle]);
-    input.addEventListener("change", () => {
-      plan.cycles[cycle] = input.checked;
-      state.plantPlans.set(plant.name, { ...plan });
-      renderPlantDetail(plant, state, main);
-      renderTodayTasks(window.__gardenData, state, main);
-      renderCalendar(window.__gardenData, state, main);
+  const cycleKeys = Object.keys(plan.cycles || {}).map(Number).sort((a, b) => a - b);
+  if (cycleKeys.length <= 1) {
+    cycleOptions.appendChild(el("div", "muted", "Single planting"));
+  } else {
+    cycleKeys.forEach(cycle => {
+      const label = el("label", "toggle");
+      const input = el("input");
+      input.type = "checkbox";
+      input.checked = Boolean(plan.cycles[cycle]);
+      input.addEventListener("change", () => {
+        plan.cycles[cycle] = input.checked;
+        state.plantPlans.set(plant.name, { ...plan });
+        renderPlantDetail(plant, state, main);
+        renderTodayTasks(window.__gardenData, state, main);
+        renderUpcomingTasks(window.__gardenData, state, main);
+        renderCalendar(window.__gardenData, state, main);
+      });
+      label.appendChild(input);
+      label.appendChild(el("span", null, `Cycle ${cycle}`));
+      cycleOptions.appendChild(label);
     });
-    label.appendChild(input);
-    label.appendChild(el("span", null, `Cycle ${cycle}`));
-    cycleOptions.appendChild(label);
-  });
+  }
   cycleRow.appendChild(cycleOptions);
   planSection.appendChild(cycleRow);
 
   const interval = getSuccessionIntervalDays(plant);
-  planSection.appendChild(el("div", "muted", `Succession offset: ${interval} days between cycles.`));
+  if (interval) {
+    planSection.appendChild(el("div", "muted", `Succession offset: ${interval} days between cycles.`));
+  } else {
+    planSection.appendChild(el("div", "muted", "This crop is typically planted once per season."));
+  }
   detail.appendChild(planSection);
 
   detail.appendChild(el("hr", "sep"));
+
+  const infoSection = el("div");
+  infoSection.appendChild(el("h3", null, "Plant details"));
+
+  const addInfoBlock = (label, value) => {
+    if (!value || (Array.isArray(value) && !value.length)) return;
+    const block = el("div");
+    block.appendChild(el("div", "row-title", label));
+    if (typeof value === "string") {
+      block.appendChild(el("div", "muted", value));
+    } else if (Array.isArray(value)) {
+      const list = el("ul");
+      value.forEach(item => {
+        if (typeof item === "string") {
+          list.appendChild(el("li", null, item));
+        } else if (item && typeof item === "object") {
+          const text = Object.entries(item).map(([key, val]) => `${key.replace(/_/g, " ")}: ${val}`).join(" · ");
+          list.appendChild(el("li", null, text));
+        }
+      });
+      block.appendChild(list);
+    } else if (typeof value === "object") {
+      const list = el("ul");
+      Object.entries(value).forEach(([key, val]) => {
+        if (Array.isArray(val)) {
+          const text = val
+            .map(item => {
+              if (typeof item === "string") return item;
+              if (item && typeof item === "object") {
+                return Object.entries(item)
+                  .map(([k, v]) => `${k.replace(/_/g, " ")}: ${v}`)
+                  .join(" · ");
+              }
+              return "";
+            })
+            .filter(Boolean)
+            .join("; ");
+          list.appendChild(el("li", null, `${key.replace(/_/g, " ")}: ${text}`));
+        } else {
+          const text = val == null ? key : `${key.replace(/_/g, " ")}: ${val}`;
+          list.appendChild(el("li", null, text));
+        }
+      });
+      block.appendChild(list);
+    }
+    infoSection.appendChild(block);
+  };
+
+  addInfoBlock("Soil prep", plant.soil_preparation);
+  addInfoBlock("Watering", plant.watering);
+  addInfoBlock("Support & training", plant.support_and_training);
+  addInfoBlock("Succession & rotation", plant.succession_and_rotation);
+  addInfoBlock("Harvest & use", plant.harvest_and_use);
+
+  if (plant.fertility_strategy?.length) {
+    const fertility = el("div");
+    fertility.appendChild(el("div", "row-title", "Fertilizer plan"));
+    const list = el("ul");
+    plant.fertility_strategy.forEach(entry => {
+      const text = [entry.stage, entry.products?.join(", "), entry.dose, entry.timing].filter(Boolean).join(" · ");
+      if (text) list.appendChild(el("li", null, text));
+    });
+    fertility.appendChild(list);
+    infoSection.appendChild(fertility);
+  }
+
+  if (plant.pest_disease) {
+    const pests = el("div");
+    pests.appendChild(el("div", "row-title", "Pests & disease"));
+    if (plant.pest_disease.key_pests?.length) {
+      const list = el("ul");
+      plant.pest_disease.key_pests.forEach(item => list.appendChild(el("li", null, item)));
+      pests.appendChild(el("div", "small", "Key pests"));
+      pests.appendChild(list);
+    }
+    if (plant.pest_disease.key_diseases?.length) {
+      const list = el("ul");
+      plant.pest_disease.key_diseases.forEach(item => list.appendChild(el("li", null, item)));
+      pests.appendChild(el("div", "small", "Key diseases"));
+      pests.appendChild(list);
+    }
+    if (plant.pest_disease.prevention?.length) {
+      const list = el("ul");
+      plant.pest_disease.prevention.forEach(item => list.appendChild(el("li", null, item)));
+      pests.appendChild(el("div", "small", "Prevention"));
+      pests.appendChild(list);
+    }
+    infoSection.appendChild(pests);
+  }
+
+  if (infoSection.children.length > 1) {
+    detail.appendChild(infoSection);
+    detail.appendChild(el("hr", "sep"));
+  }
 
   const tasksPreview = el("div");
   tasksPreview.appendChild(el("h3", null, "Next tasks"));
@@ -342,14 +587,12 @@ function renderPlantDetail(plant, state, main) {
     previewList.appendChild(el("div", "muted", "No tasks match the current plan selections."));
   } else {
     tasks.forEach(task => {
-      const row = el("div", "row");
-      const top = el("div", "row-top");
-      const info = el("div");
-      info.appendChild(el("div", "row-title", task.title));
-      info.appendChild(el("div", "row-meta", `${task.date} · ${task.season} · ${task.method.replace("_", " ")} · Cycle ${task.cycle}`));
-      top.appendChild(info);
-      row.appendChild(top);
-      previewList.appendChild(row);
+      previewList.appendChild(renderTaskRow(task, state, () => {
+        renderPlantDetail(plant, state, main);
+        renderTodayTasks(window.__gardenData, state, main);
+        renderUpcomingTasks(window.__gardenData, state, main);
+        renderCalendar(window.__gardenData, state, main);
+      }));
     });
   }
   tasksPreview.appendChild(previewList);
@@ -376,22 +619,40 @@ function renderTodayTasks(data, state, main) {
   }
 
   dueTasks.forEach(task => {
-    const row = el("div", "row");
-    const top = el("div", "row-top");
-    const info = el("div");
-    info.appendChild(el("div", "row-title", task.title));
-    info.appendChild(el("div", "row-meta", `${task.plant} · ${task.season} · ${task.method.replace("_", " ")} · Cycle ${task.cycle}`));
-    top.appendChild(info);
+    root.appendChild(renderTaskRow(task, state, () => {
+      renderTodayTasks(window.__gardenData, state, main);
+      renderUpcomingTasks(window.__gardenData, state, main);
+      renderCalendar(window.__gardenData, state, main);
+    }));
+  });
+}
 
-    const badge = el("span", "badge", task.date);
-    if (task.dt < startOfToday) {
-      badge.classList.add("overdue");
-    } else {
-      badge.classList.add("due");
-    }
-    top.appendChild(badge);
-    row.appendChild(top);
-    root.appendChild(row);
+function renderUpcomingTasks(data, state, main) {
+  const root = $("#upcoming-tasks", main);
+  if (!root) return;
+  root.innerHTML = "";
+  const windowSelect = $("#upcoming-window", main);
+  const windowDays = windowSelect ? parseInt(windowSelect.value, 10) : 30;
+  const now = new Date();
+  const startOfToday = new Date(now);
+  startOfToday.setHours(0, 0, 0, 0);
+  const horizon = addDays(now, windowDays);
+  const tasks = collectPlannedTasks(data, state)
+    .filter(t => t.dt)
+    .filter(t => t.dt >= startOfToday && t.dt <= horizon)
+    .sort((a, b) => a.dt - b.dt);
+
+  if (!tasks.length) {
+    root.appendChild(el("div", "muted", "No tasks scheduled for the selected window."));
+    return;
+  }
+
+  tasks.forEach(task => {
+    root.appendChild(renderTaskRow(task, state, () => {
+      renderTodayTasks(window.__gardenData, state, main);
+      renderUpcomingTasks(window.__gardenData, state, main);
+      renderCalendar(window.__gardenData, state, main);
+    }));
   });
 }
 
@@ -490,6 +751,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       selectedPlant: null,
       plantPlans: new Map(),
       search: "",
+      scheduleShifts: loadStoredJSON(STORAGE_KEYS.scheduleShifts, {}),
+      taskNotes: loadStoredJSON(STORAGE_KEYS.taskNotes, {}),
     };
     const status = $("#data-status", main) || $("#data-status");
     if (status) status.textContent = `Loaded ${data.plants?.length || 0} plants`;
@@ -514,7 +777,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderPlantList(data, state, main);
     renderPlantDetail(null, state, main);
     renderTodayTasks(data, state, main);
+    renderUpcomingTasks(data, state, main);
     renderCalendar(data, state, main);
+
+    const upcomingWindow = $("#upcoming-window", main);
+    if (upcomingWindow) {
+      upcomingWindow.addEventListener("change", () => renderUpcomingTasks(data, state, main));
+    }
   } catch (e) {
     console.error(e);
     const status = $("#data-status", document.querySelector("main")) || $("#data-status");
