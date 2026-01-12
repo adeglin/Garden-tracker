@@ -1,9 +1,0 @@
-body {
-  font-family: system-ui, sans-serif;
-  background:#0b1220;
-  color:#e5e7eb;
-}
-header { padding:1rem; }
-nav button { margin-right:0.5rem; }
-section { padding:1rem; display:none; }
-section:first-of-type { display:block; }
