@@ -482,6 +482,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   try {
     const data = await loadData();
+    $("#data-status").textContent = `Loaded ${data.plants?.length || 0} plants`;
+    const subtitle = document.querySelector("#subtitle");
+    if (subtitle) {
+      const region = data?.meta?.region;
+      const regionName = [region?.city, region?.state].filter(Boolean).join(", ");
+      const zone = region?.usda_zone_estimate ? `USDA Zone ${region.usda_zone_estimate}` : null;
+      const updated = data?.meta?.created_on ? `Updated ${data.meta.created_on}` : null;
+      const summary = [regionName, zone, updated].filter(Boolean).join(" · ");
+      subtitle.textContent = summary || "Garden data loaded";
+    }
+    renderPlants(data);
+    renderCalendar(data);
     window.__gardenData = data;
     const main = document.querySelector("main");
     const state = {
