@@ -9,13 +9,15 @@ function el(tag, cls, text) {
 }
 
 function showTab(tabName) {
-  document.querySelectorAll("main section").forEach(s => s.style.display = "none");
-  const active = document.getElementById(`tab-${tabName}`);
-  if (active) active.style.display = "block";
+  document.querySelectorAll("main section").forEach(section => {
+    section.classList.toggle("active", section.id === `tab-${tabName}`);
+  });
 
-  document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
-  const btn = document.querySelector(`nav button[data-tab="${tabName}"]`);
-  if (btn) btn.classList.add("active");
+  document.querySelectorAll("nav button[data-tab]").forEach(button => {
+    const isActive = button.dataset.tab === tabName;
+    button.classList.toggle("active", isActive);
+    button.setAttribute("aria-selected", String(isActive));
+  });
 }
 
 function normalizeTask(task, plantName) {
@@ -482,18 +484,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   try {
     const data = await loadData();
-    $("#data-status").textContent = `Loaded ${data.plants?.length || 0} plants`;
-    const subtitle = document.querySelector("#subtitle");
-    if (subtitle) {
-      const region = data?.meta?.region;
-      const regionName = [region?.city, region?.state].filter(Boolean).join(", ");
-      const zone = region?.usda_zone_estimate ? `USDA Zone ${region.usda_zone_estimate}` : null;
-      const updated = data?.meta?.created_on ? `Updated ${data.meta.created_on}` : null;
-      const summary = [regionName, zone, updated].filter(Boolean).join(" · ");
-      subtitle.textContent = summary || "Garden data loaded";
-    }
-    renderPlants(data);
-    renderCalendar(data);
     window.__gardenData = data;
     const main = document.querySelector("main");
     const state = {
@@ -505,9 +495,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (status) status.textContent = `Loaded ${data.plants?.length || 0} plants`;
     const subtitle = $("#subtitle");
     if (subtitle) {
-      subtitle.textContent = data?.meta?.region?.city
-        ? `${data.meta.region.city}, ${data.meta.region.state}`
-        : "Garden plan loaded";
+      const region = data?.meta?.region;
+      const regionName = [region?.city, region?.state].filter(Boolean).join(", ");
+      const zone = region?.usda_zone_estimate ? `USDA Zone ${region.usda_zone_estimate}` : null;
+      const updated = data?.meta?.created_on ? `Updated ${data.meta.created_on}` : null;
+      const summary = [regionName, zone, updated].filter(Boolean).join(" · ");
+      subtitle.textContent = summary || "Garden data loaded";
     }
 
     const search = $("#plant-search", main);
