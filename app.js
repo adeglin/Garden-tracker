@@ -29,6 +29,7 @@ const TEMPLATE_DISPLAY_NAMES = {
 
 const FERTILIZER_TEMPLATES = new Set(["fertilize", "fish_fertilizer", "tomato_tone_topdress"]);
 const SOIL_PREP_TEMPLATES = new Set(["pre_plant_soil_amendment"]);
+const ICON_EXAMPLE_PLANT = "Waltham 29 Broccoli";
 
 function $(sel, root = document) { return root.querySelector(sel); }
 function el(tag, cls, text) {
@@ -117,6 +118,15 @@ function getTaskTitle(task) {
   const label = getTaskDisplayName(task.template);
   const plantLabel = task.plant || "Garden";
   return `${label} — ${plantLabel}`;
+}
+
+function getPlantIcon(plant, sizeClass) {
+  if (!plant?.visual?.icon) return null;
+  if (plant.name !== ICON_EXAMPLE_PLANT) return null;
+  const img = el("img", sizeClass || "plant-icon");
+  img.src = plant.visual.icon;
+  img.alt = `${plant.name} icon`;
+  return img;
 }
 
 function getAvailableMethods(plant) {
@@ -605,7 +615,11 @@ function renderPlantList(data, state, main) {
 
     const top = el("div", "row-top");
     const info = el("div");
-    info.appendChild(el("div", "row-title", p.name));
+    const nameRow = el("div", "row-title");
+    const icon = getPlantIcon(p);
+    if (icon) nameRow.appendChild(icon);
+    nameRow.appendChild(document.createTextNode(p.name));
+    info.appendChild(nameRow);
     info.appendChild(el("div", "row-meta", `${p.category || "Plant"} · ${p.species || "Unknown"}`));
     top.appendChild(info);
     top.appendChild(el("span", "badge", p?.planting?.methods_supported?.join(" / ") || "plan"));
@@ -647,6 +661,11 @@ function renderPlantDetail(plant, state, main) {
   detail.innerHTML = "";
 
   const summary = el("div");
+  const summaryTitle = el("div", "row-title");
+  const summaryIcon = getPlantIcon(plant, "plant-icon-lg");
+  if (summaryIcon) summaryTitle.appendChild(summaryIcon);
+  summaryTitle.appendChild(document.createTextNode(plant.name));
+  summary.appendChild(summaryTitle);
   summary.appendChild(el("div", "row-meta", `${plant.category || "Plant"} · ${plant.species || "Unknown"}`));
   if (plant.site_requirements?.sun) {
     summary.appendChild(el("div", "small", `Sun: ${plant.site_requirements.sun}`));
@@ -824,15 +843,40 @@ function renderPlantDetail(plant, state, main) {
   if (plant.pest_disease) {
     const pests = el("div");
     pests.appendChild(el("div", "row-title", "Pests & disease"));
+    const pestLibrary = data?.pest_disease_library || {};
     if (plant.pest_disease.key_pests?.length) {
       const list = el("ul");
-      plant.pest_disease.key_pests.forEach(item => list.appendChild(el("li", null, item)));
+      plant.pest_disease.key_pests.forEach(item => {
+        const li = el("li");
+        const entry = pestLibrary[item];
+        const image = entry?.images?.[0]?.src;
+        if (image) {
+          const img = el("img", "pest-thumb");
+          img.src = image;
+          img.alt = item;
+          li.appendChild(img);
+        }
+        li.appendChild(document.createTextNode(item));
+        list.appendChild(li);
+      });
       pests.appendChild(el("div", "small", "Key pests"));
       pests.appendChild(list);
     }
     if (plant.pest_disease.key_diseases?.length) {
       const list = el("ul");
-      plant.pest_disease.key_diseases.forEach(item => list.appendChild(el("li", null, item)));
+      plant.pest_disease.key_diseases.forEach(item => {
+        const li = el("li");
+        const entry = pestLibrary[item];
+        const image = entry?.images?.[0]?.src;
+        if (image) {
+          const img = el("img", "pest-thumb");
+          img.src = image;
+          img.alt = item;
+          li.appendChild(img);
+        }
+        li.appendChild(document.createTextNode(item));
+        list.appendChild(li);
+      });
       pests.appendChild(el("div", "small", "Key diseases"));
       pests.appendChild(list);
     }

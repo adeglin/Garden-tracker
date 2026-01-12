@@ -347,7 +347,7 @@
       ],
       "images": [
         {
-          "src": "assets/photos/pests/powdery_mildew.jpg",
+          "src": "https://commons.wikimedia.org/wiki/Special:FilePath/Powdery_Mildew_Acer_DK43_%281%29.jpg",
           "credit": "Wikimedia Commons",
           "license": "CC BY-SA 4.0",
           "source_url": "https://commons.wikimedia.org/wiki/File:Powdery_Mildew_Acer_DK43_(1).jpg"
@@ -361,7 +361,7 @@
       ],
       "images": [
         {
-          "src": "assets/photos/pests/cucumber_beetle.jpg",
+          "src": "https://commons.wikimedia.org/wiki/Special:FilePath/Cucumber_beetle.jpg",
           "credit": "USDA ARS via Wikimedia Commons",
           "license": "Public domain",
           "source_url": "https://commons.wikimedia.org/wiki/File:Cucumber_beetle.jpg"
@@ -376,7 +376,7 @@
       ],
       "images": [
         {
-          "src": "assets/photos/pests/early_blight.jpg",
+          "src": "https://commons.wikimedia.org/wiki/Special:FilePath/Early_blight_on_tomato_leaves_%287871930010%29.jpg",
           "credit": "Dwight Sipler via Wikimedia Commons",
           "license": "CC BY 2.0",
           "source_url": "https://commons.wikimedia.org/wiki/File:Early_blight_on_tomato_leaves_(7871930010).jpg"
