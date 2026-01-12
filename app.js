@@ -2,7 +2,33 @@ const DATA_URL = `garden_master_full.json?v=${Date.now()}`;
 const STORAGE_KEYS = {
   taskNotes: "garden_task_notes_v1",
   scheduleShifts: "garden_schedule_shifts_v1",
+  taskCompletion: "garden_task_completion_v1",
+  taskDateOverrides: "garden_task_date_overrides_v1",
 };
+
+const TEMPLATE_DISPLAY_NAMES = {
+  pre_plant_soil_amendment: "Soil Prep",
+  seed_start_indoor: "Seed Start",
+  direct_sow: "Direct Sow",
+  harden_off: "Harden Off",
+  transplant: "Transplant",
+  thin_seedlings: "Thin Seedlings",
+  install_support: "Install Support",
+  fertilize: "Fertilize",
+  fish_fertilizer: "Fertilize",
+  tomato_tone_topdress: "Fertilize",
+  irrigation_check: "Irrigation Check",
+  pest_scout: "Pest Scout",
+  spray: "Spray",
+  prune_train: "Prune/Train",
+  harvest: "Harvest",
+  succession_sow: "Succession Sow",
+  end_of_season_cleanup: "End of Season Cleanup",
+  cleanup_rotate: "Cleanup & Rotate",
+};
+
+const FERTILIZER_TEMPLATES = new Set(["fertilize", "fish_fertilizer", "tomato_tone_topdress"]);
+const SOIL_PREP_TEMPLATES = new Set(["pre_plant_soil_amendment"]);
 
 function $(sel, root = document) { return root.querySelector(sel); }
 function el(tag, cls, text) {
@@ -79,7 +105,18 @@ function makeScheduleKey(plantName, method, season, cycle) {
 }
 
 function makeTaskKey(task) {
-  return [task.scheduleKey, task.template || task.title, task.baseDate || task.date].join("||");
+  return task.key || [task.scheduleKey, task.template || task.title, task.baseDate || task.date].join("||");
+}
+
+function getTaskDisplayName(template) {
+  if (TEMPLATE_DISPLAY_NAMES[template]) return TEMPLATE_DISPLAY_NAMES[template];
+  return template ? template.replace(/_/g, " ").replace(/\b\w/g, m => m.toUpperCase()) : "Task";
+}
+
+function getTaskTitle(task) {
+  const label = getTaskDisplayName(task.template);
+  const plantLabel = task.plant || "Garden";
+  return `${label} — ${plantLabel}`;
 }
 
 function getAvailableMethods(plant) {
@@ -203,7 +240,7 @@ function buildScheduleForPlan(plant, method, season, cycleIndex, extraShiftDays 
 }
 
 function collectPlannedTasks(data, state) {
-  const tasks = [];
+  let tasks = [];
   (data.plants || []).forEach(plant => {
     const plan = state.plantPlans.get(plant.name) || getPlantPlanDefaults(plant);
     state.plantPlans.set(plant.name, plan);
@@ -222,10 +259,207 @@ function collectPlannedTasks(data, state) {
       });
     });
   });
+  tasks = mergeTasks(tasks, data);
+  applyDateOverrides(tasks, state);
   return tasks;
 }
 
-function renderTaskRow(task, state, onUpdate) {
+function applyDateOverrides(tasks, state) {
+  const overrides = state.taskDateOverrides || {};
+  tasks.forEach(task => {
+    const override = overrides[makeTaskKey(task)];
+    if (override) {
+      const parsed = parseDate(override);
+      if (parsed) {
+        task.date = formatDate(parsed);
+        task.dt = parsed;
+        task.overrideDate = task.date;
+      }
+    }
+  });
+}
+
+function mergeTasks(tasks, data) {
+  const merged = [];
+  const fertilizerMap = new Map();
+  const soilPrepMap = new Map();
+
+  tasks.forEach(task => {
+    if (SOIL_PREP_TEMPLATES.has(task.template)) {
+      const treatmentKey = task.raw?.notes || "standard";
+      const key = `soil_prep||${task.date}||${treatmentKey}`;
+      if (!soilPrepMap.has(key)) {
+        soilPrepMap.set(key, {
+          ...task,
+          plant: "Garden",
+          method: null,
+          season: null,
+          cycle: null,
+          scheduleKey: key,
+          key,
+          shiftMode: "override",
+          appliesTo: new Set(),
+          rawItems: [],
+        });
+      }
+      const mergedTask = soilPrepMap.get(key);
+      mergedTask.appliesTo.add(task.plant);
+      mergedTask.rawItems.push(task.raw);
+      return;
+    }
+
+    if (FERTILIZER_TEMPLATES.has(task.template)) {
+      const key = `fertilize||${task.plant}||${task.date}||${task.method}||${task.season}||${task.cycle}`;
+      if (!fertilizerMap.has(key)) {
+        fertilizerMap.set(key, {
+          ...task,
+          template: "fertilize",
+          key,
+          fertilizers: [],
+        });
+      }
+      const mergedTask = fertilizerMap.get(key);
+      mergedTask.fertilizers.push({
+        template: task.template,
+        product: task.raw?.product,
+        dose: task.raw?.dose,
+        method: task.raw?.method,
+        frequency_days: task.raw?.frequency_days,
+        stop_conditions: task.raw?.stop_conditions,
+        notes: task.raw?.notes,
+      });
+      return;
+    }
+
+    merged.push(task);
+  });
+
+  fertilizerMap.forEach(task => merged.push(task));
+  soilPrepMap.forEach(task => {
+    task.appliesTo = [...task.appliesTo];
+    merged.push(task);
+  });
+
+  return merged;
+}
+
+function buildTaskInstructionLines(task, plant, data) {
+  const lines = [];
+  const raw = task.raw || {};
+  const templateInstructions = data?.task_instructions?.[task.template];
+  if (Array.isArray(templateInstructions)) {
+    templateInstructions.forEach(text => lines.push(text));
+  }
+
+  if (task.template === "seed_start_indoor") {
+    if (raw.tray_cell_size) lines.push(`Tray size: ${raw.tray_cell_size} cell.`);
+    if (raw.depth_in) lines.push(`Sow depth: ${raw.depth_in} in.`);
+    if (raw.temp_F) lines.push(`Germination temp: ${raw.temp_F}°F.`);
+    if (raw.light_hours) lines.push(`Light: ${raw.light_hours} hrs/day.`);
+  }
+
+  if (task.template === "direct_sow") {
+    if (raw.depth_in) lines.push(`Sow depth: ${raw.depth_in} in.`);
+    if (raw.spacing_in) lines.push(`Plant spacing: ${raw.spacing_in} in.`);
+    if (raw.row_spacing_in) lines.push(`Row spacing: ${raw.row_spacing_in} in.`);
+    if (raw.succession_interval_days) lines.push(`Repeat every ${raw.succession_interval_days} days for successions.`);
+  }
+
+  if (task.template === "harden_off") {
+    if (raw.duration_days) lines.push(`Harden off for ${raw.duration_days} days.`);
+  }
+
+  if (task.template === "transplant") {
+    if (raw.spacing_in) lines.push(`Plant spacing: ${raw.spacing_in} in.`);
+    if (raw.planting_hole_amendments?.length) {
+      lines.push(`Amendments: ${raw.planting_hole_amendments.join(", ")}.`);
+    }
+    if (raw.water_in_instructions) lines.push(raw.water_in_instructions);
+  }
+
+  if (task.template === "thin_seedlings") {
+    if (raw.final_spacing_in) lines.push(`Thin to ${raw.final_spacing_in} in. spacing.`);
+  }
+
+  if (task.template === "install_support") {
+    if (raw.support_type) lines.push(`Support type: ${raw.support_type}.`);
+  }
+
+  if (task.template === "spray") {
+    if (raw.product) lines.push(`Product: ${raw.product}.`);
+    if (raw.dilution) lines.push(`Dilution: ${raw.dilution}.`);
+    if (raw.coverage_notes) lines.push(raw.coverage_notes);
+    if (raw.reentry_notes) lines.push(raw.reentry_notes);
+  }
+
+  if (task.template === "prune_train") {
+    if (raw.method) lines.push(`Method: ${raw.method}.`);
+  }
+
+  if (task.template === "harvest") {
+    if (raw.maturity_signs) lines.push(`Maturity signs: ${raw.maturity_signs}.`);
+    if (raw.frequency_days) lines.push(`Harvest every ${raw.frequency_days} days as ready.`);
+    if (raw.storage_notes) lines.push(`Storage: ${raw.storage_notes}.`);
+  }
+
+  if (task.template === "succession_sow") {
+    if (raw.repeat_every_days) lines.push(`Repeat every ${raw.repeat_every_days} days.`);
+    if (raw.end_date) lines.push(`Stop successions after ${raw.end_date}.`);
+  }
+
+  if (task.template === "pest_scout") {
+    if (plant?.pest_disease?.key_pests?.length) {
+      lines.push(`Look for pests: ${plant.pest_disease.key_pests.join(", ")}.`);
+    }
+    if (plant?.pest_disease?.key_diseases?.length) {
+      lines.push(`Watch for diseases: ${plant.pest_disease.key_diseases.join(", ")}.`);
+    }
+  }
+
+  if (task.template === "fertilize") {
+    if (task.fertilizers?.length) {
+      task.fertilizers.forEach(item => {
+        const parts = [];
+        if (item.product) parts.push(`Product: ${item.product}`);
+        if (item.dose) parts.push(`Dose: ${item.dose}`);
+        if (item.method) parts.push(`Method: ${item.method}`);
+        if (item.frequency_days) parts.push(`Repeat every ${item.frequency_days} days`);
+        if (item.stop_conditions) parts.push(`Stop: ${item.stop_conditions}`);
+        if (item.notes) parts.push(item.notes);
+        if (parts.length) lines.push(parts.join(". ") + ".");
+      });
+    } else if (raw.product || raw.dose || raw.method) {
+      const parts = [];
+      if (raw.product) parts.push(`Product: ${raw.product}`);
+      if (raw.dose) parts.push(`Dose: ${raw.dose}`);
+      if (raw.method) parts.push(`Method: ${raw.method}`);
+      if (raw.frequency_days) parts.push(`Repeat every ${raw.frequency_days} days`);
+      if (raw.stop_conditions) parts.push(`Stop: ${raw.stop_conditions}`);
+      if (parts.length) lines.push(parts.join(". ") + ".");
+    }
+  }
+
+  if (task.template === "pre_plant_soil_amendment" && task.appliesTo?.length) {
+    lines.push(`Applies to: ${task.appliesTo.join(", ")}.`);
+  }
+
+  if (task.rawItems?.length) {
+    task.rawItems
+      .map(item => item?.notes)
+      .filter(Boolean)
+      .forEach(note => lines.push(note));
+  } else if (raw.notes) {
+    lines.push(raw.notes);
+  }
+
+  if (!lines.length) {
+    lines.push("Follow crop-specific guidance and local conditions.");
+  }
+
+  return lines;
+}
+
+function renderTaskRow(task, state, data, onUpdate) {
   const row = el("div", "row task-row");
   row.tabIndex = 0;
   row.setAttribute("role", "button");
@@ -233,8 +467,8 @@ function renderTaskRow(task, state, onUpdate) {
 
   const top = el("div", "row-top");
   const info = el("div");
-  info.appendChild(el("div", "row-title", task.title));
-  info.appendChild(el("div", "row-meta", `${task.plant} · ${task.season} · ${task.method.replace("_", " ")} · Succession ${task.cycle}`));
+  info.appendChild(el("div", "row-title", getTaskTitle(task)));
+  info.appendChild(el("div", "row-meta", "Tap to expand for instructions and details."));
   top.appendChild(info);
 
   const badge = el("span", "badge", task.date);
@@ -249,19 +483,54 @@ function renderTaskRow(task, state, onUpdate) {
     }
   }
   top.appendChild(badge);
+
+  const taskKey = makeTaskKey(task);
+  const completeToggle = el("label", "toggle");
+  const completeInput = el("input");
+  completeInput.type = "checkbox";
+  completeInput.checked = Boolean(state.taskCompletion?.[taskKey]);
+  completeInput.addEventListener("change", () => {
+    state.taskCompletion = { ...state.taskCompletion, [taskKey]: completeInput.checked };
+    saveStoredJSON(STORAGE_KEYS.taskCompletion, state.taskCompletion);
+    row.classList.toggle("completed", completeInput.checked);
+    onUpdate?.();
+  });
+  completeToggle.appendChild(completeInput);
+  completeToggle.appendChild(el("span", null, "Completed"));
+  top.appendChild(completeToggle);
+
+  if (completeInput.checked) {
+    row.classList.add("completed");
+  }
+
   row.appendChild(top);
 
   const details = el("div", "row-details");
   const detailGrid = el("div", "detail-grid");
   detailGrid.appendChild(el("div", "label", "Planned"));
   detailGrid.appendChild(el("div", "muted", task.plannedDate || task.date));
-  detailGrid.appendChild(el("div", "label", "Method"));
-  detailGrid.appendChild(el("div", "muted", task.method.replace("_", " ")));
-  detailGrid.appendChild(el("div", "label", "Season"));
-  detailGrid.appendChild(el("div", "muted", task.season));
-  detailGrid.appendChild(el("div", "label", "Succession"));
-  detailGrid.appendChild(el("div", "muted", `Succession ${task.cycle}`));
+  if (task.method) {
+    detailGrid.appendChild(el("div", "label", "Method"));
+    detailGrid.appendChild(el("div", "muted", task.method.replace("_", " ")));
+  }
+  if (task.season) {
+    detailGrid.appendChild(el("div", "label", "Season"));
+    detailGrid.appendChild(el("div", "muted", task.season));
+  }
+  if (task.cycle) {
+    detailGrid.appendChild(el("div", "label", "Succession"));
+    detailGrid.appendChild(el("div", "muted", `Succession ${task.cycle}`));
+  }
   details.appendChild(detailGrid);
+
+  const plant = state.plantIndex?.get(task.plant);
+  const instructions = buildTaskInstructionLines(task, plant, data);
+  const instructionBlock = el("div");
+  instructionBlock.appendChild(el("div", "label", "Instructions"));
+  const instructionList = el("ul");
+  instructions.forEach(text => instructionList.appendChild(el("li", null, text)));
+  instructionBlock.appendChild(instructionList);
+  details.appendChild(instructionBlock);
 
   const controls = el("div", "row-controls");
   const dateLabel = el("label", "label", "Reschedule");
@@ -272,6 +541,12 @@ function renderTaskRow(task, state, onUpdate) {
     const newDate = parseDate(dateInput.value);
     const plannedDate = parseDate(task.plannedDate || task.date);
     if (!newDate || !plannedDate) return;
+    if (task.shiftMode === "override") {
+      state.taskDateOverrides = { ...state.taskDateOverrides, [taskKey]: formatDate(newDate) };
+      saveStoredJSON(STORAGE_KEYS.taskDateOverrides, state.taskDateOverrides);
+      onUpdate?.();
+      return;
+    }
     const shiftDays = Math.round((newDate - plannedDate) / 86400000);
     state.scheduleShifts = { ...state.scheduleShifts, [task.scheduleKey]: shiftDays };
     saveStoredJSON(STORAGE_KEYS.scheduleShifts, state.scheduleShifts);
@@ -283,7 +558,6 @@ function renderTaskRow(task, state, onUpdate) {
   const notesLabel = el("label", "label", "Notes");
   const notesInput = el("textarea", "input");
   notesInput.rows = 3;
-  const taskKey = makeTaskKey(task);
   notesInput.value = state.taskNotes?.[taskKey] || "";
   notesInput.addEventListener("input", () => {
     state.taskNotes = { ...state.taskNotes, [taskKey]: notesInput.value };
@@ -465,7 +739,7 @@ function renderPlantDetail(plant, state, main) {
         renderCalendar(window.__gardenData, state, main);
       });
       label.appendChild(input);
-      label.appendChild(el("span", null, `Cycle ${cycle}`));
+      label.appendChild(el("span", null, `Succession ${cycle}`));
       cycleOptions.appendChild(label);
     });
   }
@@ -587,7 +861,7 @@ function renderPlantDetail(plant, state, main) {
     previewList.appendChild(el("div", "muted", "No tasks match the current plan selections."));
   } else {
     tasks.forEach(task => {
-      previewList.appendChild(renderTaskRow(task, state, () => {
+      previewList.appendChild(renderTaskRow(task, state, window.__gardenData, () => {
         renderPlantDetail(plant, state, main);
         renderTodayTasks(window.__gardenData, state, main);
         renderUpcomingTasks(window.__gardenData, state, main);
@@ -608,10 +882,14 @@ function renderTodayTasks(data, state, main) {
   const startOfToday = new Date(now);
   startOfToday.setHours(0, 0, 0, 0);
   const horizon = addDays(now, 7);
-  const dueTasks = tasks
+  const hideComplete = $("#toggle-hide-complete", main)?.checked;
+  let dueTasks = tasks
     .filter(t => t.dt)
     .filter(t => t.dt <= horizon)
     .sort((a, b) => a.dt - b.dt);
+  if (hideComplete) {
+    dueTasks = dueTasks.filter(task => !state.taskCompletion?.[makeTaskKey(task)]);
+  }
 
   if (!dueTasks.length) {
     root.appendChild(el("div", "muted", "No tasks due in the next week based on your plan selections."));
@@ -619,7 +897,7 @@ function renderTodayTasks(data, state, main) {
   }
 
   dueTasks.forEach(task => {
-    root.appendChild(renderTaskRow(task, state, () => {
+    root.appendChild(renderTaskRow(task, state, data, () => {
       renderTodayTasks(window.__gardenData, state, main);
       renderUpcomingTasks(window.__gardenData, state, main);
       renderCalendar(window.__gardenData, state, main);
@@ -637,10 +915,14 @@ function renderUpcomingTasks(data, state, main) {
   const startOfToday = new Date(now);
   startOfToday.setHours(0, 0, 0, 0);
   const horizon = addDays(now, windowDays);
-  const tasks = collectPlannedTasks(data, state)
+  let tasks = collectPlannedTasks(data, state)
     .filter(t => t.dt)
     .filter(t => t.dt >= startOfToday && t.dt <= horizon)
     .sort((a, b) => a.dt - b.dt);
+  const hideComplete = $("#toggle-upcoming-hide-complete", main)?.checked;
+  if (hideComplete) {
+    tasks = tasks.filter(task => !state.taskCompletion?.[makeTaskKey(task)]);
+  }
 
   if (!tasks.length) {
     root.appendChild(el("div", "muted", "No tasks scheduled for the selected window."));
@@ -648,7 +930,7 @@ function renderUpcomingTasks(data, state, main) {
   }
 
   tasks.forEach(task => {
-    root.appendChild(renderTaskRow(task, state, () => {
+    root.appendChild(renderTaskRow(task, state, data, () => {
       renderTodayTasks(window.__gardenData, state, main);
       renderUpcomingTasks(window.__gardenData, state, main);
       renderCalendar(window.__gardenData, state, main);
@@ -753,6 +1035,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       search: "",
       scheduleShifts: loadStoredJSON(STORAGE_KEYS.scheduleShifts, {}),
       taskNotes: loadStoredJSON(STORAGE_KEYS.taskNotes, {}),
+      taskCompletion: loadStoredJSON(STORAGE_KEYS.taskCompletion, {}),
+      taskDateOverrides: loadStoredJSON(STORAGE_KEYS.taskDateOverrides, {}),
+      plantIndex: new Map((data.plants || []).map(plant => [plant.name, plant])),
     };
     const status = $("#data-status", main) || $("#data-status");
     if (status) status.textContent = `Loaded ${data.plants?.length || 0} plants`;
@@ -783,6 +1068,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     const upcomingWindow = $("#upcoming-window", main);
     if (upcomingWindow) {
       upcomingWindow.addEventListener("change", () => renderUpcomingTasks(data, state, main));
+    }
+    const todayToggle = $("#toggle-hide-complete", main);
+    if (todayToggle) {
+      todayToggle.addEventListener("change", () => renderTodayTasks(data, state, main));
+    }
+    const upcomingToggle = $("#toggle-upcoming-hide-complete", main);
+    if (upcomingToggle) {
+      upcomingToggle.addEventListener("change", () => renderUpcomingTasks(data, state, main));
     }
   } catch (e) {
     console.error(e);

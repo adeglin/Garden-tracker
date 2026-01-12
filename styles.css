@@ -98,6 +98,7 @@ body{
   justify-content:space-between;
   gap:10px;
 }
+.row-top .toggle{margin-left: auto}
 .row-title{font-weight:700; font-size:15px}
 .row-meta{font-size:13px; color:var(--muted); margin-top:3px}
 .row-actions{display:flex; align-items:center; gap:10px}
@@ -176,6 +177,8 @@ hr.sep{border:none; border-top:1px solid var(--border); margin: 10px 0}
 
 .task-row{cursor:pointer}
 .task-row:focus{outline:2px solid rgba(96,165,250,0.5); outline-offset:2px}
+.task-row.completed{opacity:0.65}
+.task-row.completed .row-title{text-decoration:line-through}
 .row-details{
   display:none;
   margin-top:10px;

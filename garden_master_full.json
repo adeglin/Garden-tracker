@@ -384,6 +384,88 @@
       ]
     }
   },
+  "task_instructions": {
+    "pre_plant_soil_amendment": [
+      "Spread compost evenly across the bed and lightly incorporate into the top few inches of soil.",
+      "Apply any base fertilizer or minerals per label rates and water in to activate amendments.",
+      "Rake the surface smooth so beds are level and ready for planting."
+    ],
+    "seed_start_indoor": [
+      "Fill clean trays with seed-starting mix and pre-moisten so the mix is evenly damp.",
+      "Sow seeds at the listed depth, cover lightly, and keep warm until germination.",
+      "Provide bright light immediately after germination to prevent leggy seedlings."
+    ],
+    "direct_sow": [
+      "Sow into finely prepared soil, firm gently, and water with a soft spray so seed is not displaced.",
+      "Keep the seedbed evenly moist until seedlings emerge and are established.",
+      "Thin to final spacing once true leaves appear to avoid crowding."
+    ],
+    "harden_off": [
+      "Start with 1–2 hours outdoors in shade and increase exposure daily for 5–7 days.",
+      "Bring seedlings in if night temps drop below crop tolerance or winds are strong.",
+      "Reduce watering slightly to help seedlings adjust without stressing them."
+    ],
+    "transplant": [
+      "Plant in the late afternoon or on a cloudy day to reduce shock.",
+      "Set plants at the same depth they were in the pot unless the crop benefits from deeper planting.",
+      "Water in immediately after planting and keep soil consistently moist for the first week."
+    ],
+    "thin_seedlings": [
+      "Thin by snipping at the soil line to avoid disturbing neighboring roots.",
+      "Leave the healthiest, most evenly spaced seedlings in place."
+    ],
+    "install_support": [
+      "Install trellis, stakes, or netting before plants sprawl to avoid root damage later.",
+      "Secure supports firmly so they can handle wind and crop weight."
+    ],
+    "fertilize": [
+      "Apply fertilizer to moist soil and water in afterward unless the product label says otherwise.",
+      "Side-dress granular products a few inches from stems; avoid direct contact with foliage.",
+      "Adjust frequency based on plant vigor and avoid over-fertilizing."
+    ],
+    "fish_fertilizer": [
+      "Mix fish fertilizer with water per label and apply as a soil drench at the base of plants.",
+      "Avoid foliar contact in hot sun to reduce leaf burn.",
+      "Rinse watering cans or sprayers after use to prevent odor buildup."
+    ],
+    "tomato_tone_topdress": [
+      "Sprinkle topdress evenly around the drip line and lightly scratch into the surface.",
+      "Water well to move nutrients into the root zone."
+    ],
+    "irrigation_check": [
+      "Confirm emitters are flowing and adjust run times for recent weather.",
+      "Check that water reaches the root zone and is not pooling on the surface."
+    ],
+    "pest_scout": [
+      "Inspect the undersides of leaves, new growth, and stems where pests hide.",
+      "Look for feeding damage, frass, and eggs in addition to live insects.",
+      "Record findings so you can track outbreaks over time."
+    ],
+    "spray": [
+      "Mix product at the label dilution and cover both leaf surfaces.",
+      "Avoid spraying during peak heat or when pollinators are active unless the label allows it."
+    ],
+    "prune_train": [
+      "Remove damaged or crowded foliage first to improve airflow.",
+      "Tie or train vines gently to prevent snapping stems."
+    ],
+    "harvest": [
+      "Harvest in the cool of the morning for best flavor and shelf life.",
+      "Use clean tools and handle produce gently to avoid bruising."
+    ],
+    "succession_sow": [
+      "Repeat sowing on the schedule to keep a steady harvest window.",
+      "Remove residue from previous successions to reduce disease carryover."
+    ],
+    "end_of_season_cleanup": [
+      "Remove spent plant material and dispose of any diseased debris away from beds.",
+      "Add compost or mulch to protect soil until the next planting."
+    ],
+    "cleanup_rotate": [
+      "Clear the bed, note disease or pest issues, and plan rotation to a different crop family.",
+      "Refresh soil with compost before the next crop if needed."
+    ]
+  },
   "task_templates": {
     "seed_start_indoor": {
       "fields": [
