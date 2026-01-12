@@ -269,6 +269,64 @@ hr.sep{border:none; border-top:1px solid var(--border); margin: 10px 0}
   align-items:center;
   gap:10px;
 }
+
+.legend{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px 12px;
+  margin-top:8px;
+}
+.legend-item{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:12px;
+  color:var(--muted);
+}
+.legend-swatch{
+  width:14px;
+  height:14px;
+  border-radius:4px;
+  border:1px solid rgba(255,255,255,0.2);
+}
+
+.cal-grid{
+  display:grid;
+  grid-template-columns: 180px repeat(24, minmax(24px, 1fr));
+  gap:6px;
+}
+.cal-header{
+  position:sticky;
+  top:0;
+  z-index:1;
+}
+.cal-cell{
+  border:1px solid var(--border);
+  border-radius:8px;
+  min-height:28px;
+  background: rgba(255,255,255,0.02);
+}
+.cal-label{
+  font-size:12px;
+  color:var(--muted);
+  display:flex;
+  align-items:center;
+  padding-left:6px;
+}
+.cal-slot{
+  position:relative;
+  overflow:hidden;
+}
+.cal-stage{
+  width:100%;
+  height:100%;
+  border-radius:6px;
+}
+.stage-indoors{background: rgba(250, 204, 21, 0.75);}
+.stage-transplant{background: rgba(251, 146, 60, 0.75);}
+.stage-sow{background: rgba(248, 113, 113, 0.75);}
+.stage-growing{background: rgba(34, 197, 94, 0.7);}
+.stage-harvest{background: rgba(59, 130, 246, 0.75);}
 .cal-plant-name{
   font-size: 13px;
 }

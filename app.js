@@ -941,54 +941,206 @@ function renderUpcomingTasks(data, state, main) {
 function renderCalendar(data, state, main) {
   const yearSel = $("#cal-year", main);
   const grid = $("#calendar-grid", main);
+  const legend = $("#calendar-legend", main);
   if (!yearSel || !grid) return;
+
+  const stageConfig = [
+    { key: "indoors", label: "Plant Indoors", className: "stage-indoors" },
+    { key: "transplant", label: "Transplant", className: "stage-transplant" },
+    { key: "sow", label: "Sow", className: "stage-sow" },
+    { key: "growing", label: "Growing", className: "stage-growing" },
+    { key: "harvest", label: "Harvest", className: "stage-harvest" },
+  ];
+  const stagePriority = ["harvest", "growing", "transplant", "sow", "indoors"];
+
+  const buildLegend = () => {
+    if (!legend) return;
+    legend.innerHTML = "";
+    stageConfig.forEach(stage => {
+      const item = el("div", "legend-item");
+      const swatch = el("span", "legend-swatch");
+      swatch.classList.add(stage.className);
+      item.appendChild(swatch);
+      item.appendChild(el("span", null, stage.label));
+      legend.appendChild(item);
+    });
+  };
+
+  const monthLabels = [
+    ["Jan 1-15", "Jan 16-31"],
+    ["Feb 1-15", "Feb 16-29"],
+    ["Mar 1-15", "Mar 16-31"],
+    ["Apr 1-15", "Apr 16-30"],
+    ["May 1-15", "May 16-31"],
+    ["Jun 1-15", "Jun 16-30"],
+    ["Jul 1-15", "Jul 16-31"],
+    ["Aug 1-15", "Aug 16-31"],
+    ["Sep 1-15", "Sep 16-30"],
+    ["Oct 1-15", "Oct 16-31"],
+    ["Nov 1-15", "Nov 16-30"],
+    ["Dec 1-15", "Dec 16-31"],
+  ];
+
+  const clampDate = (date, year) => {
+    const start = new Date(year, 0, 1);
+    const end = new Date(year, 11, 31);
+    if (date < start) return start;
+    if (date > end) return end;
+    return date;
+  };
+
+  const dateToSlot = date => {
+    const month = date.getMonth();
+    const half = date.getDate() > 15 ? 1 : 0;
+    return month * 2 + half;
+  };
+
+  const fillSlots = (slots, startDate, endDate, stageKey) => {
+    if (!startDate || !endDate) return;
+    const startSlot = dateToSlot(startDate);
+    const endSlot = dateToSlot(endDate);
+    for (let idx = startSlot; idx <= endSlot; idx += 1) {
+      const existing = slots[idx];
+      if (!existing || stagePriority.indexOf(stageKey) < stagePriority.indexOf(existing)) {
+        slots[idx] = stageKey;
+      }
+    }
+  };
+
+  const buildStagesForTasks = (tasks, year) => {
+    const stagesByPlant = new Map();
+    const scheduleMap = new Map();
+    tasks.forEach(task => {
+      const key = task.scheduleKey || `${task.plant}||default`;
+      if (!scheduleMap.has(key)) scheduleMap.set(key, []);
+      scheduleMap.get(key).push(task);
+    });
+
+    scheduleMap.forEach(taskList => {
+      const plantName = taskList[0]?.plant;
+      if (!plantName) return;
+      const byTemplate = {};
+      taskList.forEach(task => {
+        if (!byTemplate[task.template]) byTemplate[task.template] = [];
+        byTemplate[task.template].push(task);
+      });
+
+      const pickDate = template => {
+        const items = byTemplate[template] || [];
+        if (!items.length) return null;
+        const sorted = items.map(t => t.dt).filter(Boolean).sort((a, b) => a - b);
+        return sorted[0] || null;
+      };
+
+      const seedStart = pickDate("seed_start_indoor");
+      const transplant = pickDate("transplant");
+      const directSow = pickDate("direct_sow");
+      const harvestDates = (byTemplate.harvest || []).map(t => t.dt).filter(Boolean).sort((a, b) => a - b);
+      const harvestStart = harvestDates[0] || null;
+      const harvestEnd = harvestDates.length ? harvestDates[harvestDates.length - 1] : null;
+
+      const yearStart = new Date(year, 0, 1);
+      const yearEnd = new Date(year, 11, 31);
+      const plantStages = [];
+
+      if (seedStart && transplant) {
+        plantStages.push({
+          key: "indoors",
+          start: clampDate(seedStart, year),
+          end: clampDate(transplant, year),
+        });
+      }
+
+      if (transplant) {
+        plantStages.push({
+          key: "transplant",
+          start: clampDate(transplant, year),
+          end: clampDate(addDays(transplant, 7), year),
+        });
+      }
+
+      if (directSow) {
+        plantStages.push({
+          key: "sow",
+          start: clampDate(directSow, year),
+          end: clampDate(addDays(directSow, 7), year),
+        });
+      }
+
+      const growStart = transplant || directSow;
+      if (growStart) {
+        const growEnd = harvestStart || yearEnd;
+        if (growEnd >= growStart) {
+          plantStages.push({
+            key: "growing",
+            start: clampDate(growStart, year),
+            end: clampDate(growEnd, year),
+          });
+        }
+      }
+
+      if (harvestStart) {
+        const endDate = harvestEnd || addDays(harvestStart, 14);
+        plantStages.push({
+          key: "harvest",
+          start: clampDate(harvestStart, year),
+          end: clampDate(endDate, year),
+        });
+      }
+
+      if (!stagesByPlant.has(plantName)) {
+        stagesByPlant.set(plantName, []);
+      }
+      stagesByPlant.get(plantName).push(...plantStages);
+    });
+
+    return stagesByPlant;
+  };
 
   function rerender() {
     grid.innerHTML = "";
     const year = parseInt(yearSel.value, 10);
-    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-    const tasks = collectPlannedTasks(data, state).filter(t => t.dt && t.dt.getFullYear() === year);
+    const tasks = collectPlannedTasks(data, state)
+      .filter(t => t.dt && t.dt.getFullYear() === year)
+      .filter(t => !FERTILIZER_TEMPLATES.has(t.template))
+      .filter(t => !SOIL_PREP_TEMPLATES.has(t.template));
+    const stageMap = buildStagesForTasks(tasks, year);
 
     if (!tasks.length) {
       grid.appendChild(el("div", "muted", "No tasks scheduled for this year with the current plan selections."));
       return;
     }
 
-    const table = el("table");
-    table.style.width = "100%";
-    table.style.borderCollapse = "collapse";
-
-    const headerRow = el("tr");
-    headerRow.appendChild(el("th", "muted", "Plant"));
-    months.forEach(month => {
-      headerRow.appendChild(el("th", "muted", month));
+    const matrix = el("div", "cal-grid");
+    const header = el("div", "cal-header cal-grid");
+    header.appendChild(el("div", "cal-cell cal-label", "Plant"));
+    monthLabels.flat().forEach(label => {
+      header.appendChild(el("div", "cal-cell cal-label", label));
     });
-    table.appendChild(headerRow);
+    matrix.appendChild(header);
 
     (data.plants || []).forEach(plant => {
-      const row = el("tr");
-      const label = el("td");
-      label.textContent = plant.name;
-      label.style.fontSize = "12px";
-      row.appendChild(label);
-
-      const plantTasks = tasks.filter(t => t.plant === plant.name);
-      const counts = Array(12).fill(0);
-      plantTasks.forEach(task => {
-        counts[task.dt.getMonth()] += 1;
+      const row = el("div", "cal-grid");
+      row.appendChild(el("div", "cal-cell cal-label", plant.name));
+      const slots = Array(24).fill(null);
+      const stages = stageMap.get(plant.name) || [];
+      stages.forEach(stage => {
+        fillSlots(slots, stage.start, stage.end, stage.key);
       });
-
-      counts.forEach(count => {
-        const cell = el("td");
-        cell.style.textAlign = "center";
-        cell.style.fontSize = "12px";
-        cell.textContent = count ? String(count) : "–";
+      slots.forEach(stageKey => {
+        const cell = el("div", "cal-cell cal-slot");
+        if (stageKey) {
+          const stage = stageConfig.find(item => item.key === stageKey);
+          const block = el("div", "cal-stage");
+          if (stage?.className) block.classList.add(stage.className);
+          cell.appendChild(block);
+        }
         row.appendChild(cell);
       });
-      table.appendChild(row);
+      matrix.appendChild(row);
     });
 
-    grid.appendChild(table);
+    grid.appendChild(matrix);
   }
 
   if (!yearSel.dataset.ready) {
@@ -1009,6 +1161,7 @@ function renderCalendar(data, state, main) {
     yearSel.onchange = rerender;
     yearSel.dataset.ready = "true";
   }
+  buildLegend();
   rerender();
 }
 
