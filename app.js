@@ -1158,9 +1158,9 @@ function activateTab(tabName){
 }
 
 async function fetchData(){
-  const res = await fetch(DATA_URL, {cache: 'no-cache'});
-  if (!res.ok) throw new Error(`Failed to load ${DATA_URL}`);
-  return await res.json();
+  const url = `garden_master_full.json?v=12`; // any fixed version string is fine
+   const res = await fetch(url, { cache: "no-store" });
+   const data = await res.json();
 }
 
 // Weather (optional) using Open-Meteo (no API key)
