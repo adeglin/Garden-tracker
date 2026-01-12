@@ -325,7 +325,7 @@ hr.sep{border:none; border-top:1px solid var(--border); margin: 10px 0}
   padding-left:0;
 }
 .cal-cell.month-alt{
-  background: rgba(255,255,255,0.04);
+  background: rgba(255,255,255,0.08);
 }
 .cal-label{
   font-size:12px;

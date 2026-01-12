@@ -1038,11 +1038,35 @@ function renderCalendar(data, state, main) {
     }
   };
 
+  const extractDurationDays = text => {
+    if (!text) return null;
+    const range = text.match(/(\d+(?:\.\d+)?)\s*(?:–|-|to)\s*(\d+(?:\.\d+)?)\s*(week|month|day)s?/i);
+    const single = text.match(/(\d+(?:\.\d+)?)\s*(week|month|day)s?/i);
+    const toDays = (value, unit) => {
+      if (unit.startsWith("month")) return value * 30;
+      if (unit.startsWith("week")) return value * 7;
+      return value;
+    };
+    if (range) {
+      const maxVal = parseFloat(range[2]);
+      return Math.round(toDays(maxVal, range[3].toLowerCase()));
+    }
+    if (single) {
+      return Math.round(toDays(parseFloat(single[1]), single[2].toLowerCase()));
+    }
+    return null;
+  };
+
   const getHarvestSpanDays = plant => {
     const name = plant?.name?.toLowerCase() || "";
     if (name.includes("tomato")) return 90;
     if (name.includes("pepper") || name.includes("cucumber") || name.includes("eggplant")) return 75;
+    const harvestWindow = plant?.harvest_and_use?.harvest_window || "";
     const frequency = plant?.harvest_and_use?.frequency || "";
+    const fromWindow = extractDurationDays(harvestWindow);
+    if (fromWindow) return fromWindow;
+    const fromFrequency = extractDurationDays(frequency);
+    if (fromFrequency) return fromFrequency;
     if (/weeks|side shoots|multiple/i.test(frequency)) return 60;
     return 30;
   };
@@ -1153,9 +1177,8 @@ function renderCalendar(data, state, main) {
     const matrix = el("div", "cal-grid");
     const header = el("div", "cal-header cal-row");
     header.appendChild(el("div", "cal-cell cal-label", "Plant"));
-    monthNames.forEach((label, index) => {
+    monthNames.forEach(label => {
       const cell = el("div", "cal-cell cal-label cal-month");
-      if (index % 2 === 1) cell.classList.add("month-alt");
       cell.style.gridColumn = "span 2";
       cell.textContent = label;
       header.appendChild(cell);
@@ -1203,7 +1226,11 @@ function renderCalendar(data, state, main) {
       yearSel.appendChild(opt);
     });
 
-    yearSel.value = String(new Date().getFullYear());
+    if (created && /^\d{4}/.test(created)) {
+      yearSel.value = created.slice(0, 4);
+    } else {
+      yearSel.value = String(new Date().getFullYear());
+    }
     yearSel.onchange = rerender;
     yearSel.dataset.ready = "true";
   }
