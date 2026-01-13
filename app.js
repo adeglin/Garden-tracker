@@ -105,6 +105,203 @@ function getStageLabel(stageKey) {
   }
 }
 
+function clampDateToYear(date, year) {
+  const start = new Date(year, 0, 1);
+  const end = new Date(year, 11, 31);
+  if (date < start) return start;
+  if (date > end) return end;
+  return date;
+}
+
+function extractDurationDays(text) {
+  if (!text) return null;
+  const range = text.match(/(\d+(?:\.\d+)?)\s*(?:–|-|to)\s*(\d+(?:\.\d+)?)\s*(week|month|day)s?/i);
+  const single = text.match(/(\d+(?:\.\d+)?)\s*(week|month|day)s?/i);
+  const toDays = (value, unit) => {
+    if (unit.startsWith("month")) return value * 30;
+    if (unit.startsWith("week")) return value * 7;
+    return value;
+  };
+  if (range) {
+    const maxVal = parseFloat(range[2]);
+    return Math.round(toDays(maxVal, range[3].toLowerCase()));
+  }
+  if (single) {
+    return Math.round(toDays(parseFloat(single[1]), single[2].toLowerCase()));
+  }
+  return null;
+}
+
+function getHarvestSpanDays(plant) {
+  const name = plant?.name?.toLowerCase() || "";
+  if (name.includes("tomato")) return 90;
+  if (name.includes("pepper") || name.includes("cucumber") || name.includes("eggplant")) return 75;
+  const harvestWindow = plant?.harvest_and_use?.harvest_window || "";
+  const frequency = plant?.harvest_and_use?.frequency || "";
+  const fromWindow = extractDurationDays(harvestWindow);
+  if (fromWindow) return fromWindow;
+  const fromFrequency = extractDurationDays(frequency);
+  if (fromFrequency) return fromFrequency;
+  if (/weeks|side shoots|multiple/i.test(frequency)) return 60;
+  return 30;
+}
+
+function buildStagesForTasks(tasks, year, data) {
+  const stagesByPlant = new Map();
+  const scheduleMap = new Map();
+  tasks.forEach(task => {
+    const key = task.scheduleKey || `${task.plant}||default`;
+    if (!scheduleMap.has(key)) scheduleMap.set(key, []);
+    scheduleMap.get(key).push(task);
+  });
+
+  scheduleMap.forEach(taskList => {
+    const plantName = taskList[0]?.plant;
+    if (!plantName) return;
+    const plant = data?.plants?.find(item => item.name === plantName);
+    const method = taskList[0]?.method;
+    const season = taskList[0]?.season || "spring";
+    const byTemplate = {};
+    taskList.forEach(task => {
+      if (!byTemplate[task.template]) byTemplate[task.template] = [];
+      byTemplate[task.template].push(task);
+    });
+
+    const pickDate = template => {
+      const items = byTemplate[template] || [];
+      if (!items.length) return null;
+      const sorted = items.map(t => t.dt).filter(Boolean).sort((a, b) => a - b);
+      return sorted[0] || null;
+    };
+
+    const seedStart = pickDate("seed_start_indoor");
+    const transplant = pickDate("transplant");
+    const directSow = pickDate("direct_sow");
+    const harvestDates = (byTemplate.harvest || []).map(t => t.dt).filter(Boolean).sort((a, b) => a - b);
+    const harvestStart = harvestDates[0] || null;
+    const harvestEnd = harvestDates.length ? harvestDates[harvestDates.length - 1] : null;
+    const yearEnd = new Date(year, 11, 31);
+    const plantStages = [];
+
+    const indoorWindow = parseDate(plant?.planting?.indoor_start_optional?.start)
+      || parseDate(plant?.planting?.primary?.indoor_start_window?.start);
+    const transplantWindow = parseDate(getPlantingWindowStart(plant, "transplant", season))
+      || parseDate(plant?.planting?.primary?.transplant_window?.start);
+    const sowWindow = parseDate(getPlantingWindowStart(plant, "direct_sow", season))
+      || parseDate(plant?.planting?.direct_sow_window?.start);
+
+    let fallbackTransplant = transplant || transplantWindow;
+    if (!fallbackTransplant && seedStart) {
+      fallbackTransplant = addDays(seedStart, 28);
+    }
+
+    let fallbackSow = directSow || sowWindow;
+    const indoorStart = seedStart || indoorWindow || (fallbackTransplant ? addDays(fallbackTransplant, -28) : null);
+
+    if (indoorStart && fallbackTransplant) {
+      plantStages.push({
+        key: "indoors",
+        start: clampDateToYear(indoorStart, year),
+        end: clampDateToYear(fallbackTransplant, year),
+      });
+    } else if (!indoorStart && !fallbackSow && fallbackTransplant) {
+      const derivedStart = addDays(fallbackTransplant, -28);
+      plantStages.push({
+        key: "indoors",
+        start: clampDateToYear(derivedStart, year),
+        end: clampDateToYear(fallbackTransplant, year),
+      });
+    }
+
+    if (fallbackTransplant && (method === "transplant" || !fallbackSow)) {
+      plantStages.push({
+        key: "transplant",
+        start: clampDateToYear(fallbackTransplant, year),
+        end: clampDateToYear(fallbackTransplant, year),
+      });
+    }
+
+    if (fallbackSow && (method === "direct_sow" || !fallbackTransplant)) {
+      plantStages.push({
+        key: "sow",
+        start: clampDateToYear(fallbackSow, year),
+        end: clampDateToYear(fallbackSow, year),
+      });
+    }
+
+    const growStart = (method === "transplant" ? fallbackTransplant : null)
+      || (method === "direct_sow" ? fallbackSow : null)
+      || fallbackTransplant
+      || fallbackSow;
+    if (growStart) {
+      const growEnd = harvestStart || yearEnd;
+      if (growEnd >= growStart) {
+        plantStages.push({
+          key: "growing",
+          start: clampDateToYear(growStart, year),
+          end: clampDateToYear(growEnd, year),
+        });
+      }
+    }
+
+    if (harvestStart) {
+      const harvestSpan = getHarvestSpanDays(plant);
+      const spanEnd = addDays(harvestStart, harvestSpan);
+      const endDate = harvestEnd && harvestEnd > spanEnd ? harvestEnd : spanEnd;
+      plantStages.push({
+        key: "harvest",
+        start: clampDateToYear(harvestStart, year),
+        end: clampDateToYear(endDate, year),
+      });
+    }
+
+    if (!stagesByPlant.has(plantName)) {
+      stagesByPlant.set(plantName, []);
+    }
+    stagesByPlant.get(plantName).push({
+      label: `${plantName} (${season})`,
+      method,
+      season,
+      stages: plantStages,
+    });
+  });
+
+  const entries = [];
+  stagesByPlant.forEach(list => {
+    const ranges = list.map(entry => {
+      const start = entry.stages.reduce((min, stage) => (stage.start < min ? stage.start : min), entry.stages[0]?.start);
+      const end = entry.stages.reduce((max, stage) => (stage.end > max ? stage.end : max), entry.stages[0]?.end);
+      return { entry, start, end };
+    }).sort((a, b) => a.start - b.start);
+
+    const merged = [];
+    ranges.forEach(item => {
+      const last = merged[merged.length - 1];
+      if (!last || item.start > last.end) {
+        merged.push({
+          label: item.entry.label,
+          stages: [...item.entry.stages],
+          start: item.start,
+          end: item.end,
+        });
+        return;
+      }
+      last.stages = last.stages.concat(item.entry.stages);
+      if (item.end > last.end) last.end = item.end;
+    });
+
+    const baseLabel = list[0]?.label?.replace(/\s*\(.+\)$/, "") || list[0]?.entry?.label?.replace(/\s*\(.+\)$/, "");
+    merged.forEach(item => {
+      const label = merged.length === 1 ? baseLabel : item.label;
+      entries.push({
+        label,
+        stages: item.stages,
+      });
+    });
+  });
+  return entries;
+}
+
 function loadStoredJSON(key, fallback) {
   try {
     const raw = localStorage.getItem(key);
@@ -380,7 +577,7 @@ function getPlantStageStatus(plant, state, data) {
     .filter(t => t.dt && t.dt.getFullYear() === year)
     .filter(t => !FERTILIZER_TEMPLATES.has(t.template))
     .filter(t => !SOIL_PREP_TEMPLATES.has(t.template));
-  const stages = buildStagesForTasks(tasks, year);
+  const stages = buildStagesForTasks(tasks, year, data);
   const today = new Date();
   const match = stages.find(entry => entry.label.startsWith(plant.name));
   if (!match) return "Pending";
@@ -1123,14 +1320,6 @@ function renderCalendar(data, state, main) {
 
   const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
-  const clampDate = (date, year) => {
-    const start = new Date(year, 0, 1);
-    const end = new Date(year, 11, 31);
-    if (date < start) return start;
-    if (date > end) return end;
-    return date;
-  };
-
   const dateToSlot = date => {
     const month = date.getMonth();
     const half = date.getDate() > 15 ? 1 : 0;
@@ -1149,192 +1338,6 @@ function renderCalendar(data, state, main) {
     }
   };
 
-  const extractDurationDays = text => {
-    if (!text) return null;
-    const range = text.match(/(\d+(?:\.\d+)?)\s*(?:–|-|to)\s*(\d+(?:\.\d+)?)\s*(week|month|day)s?/i);
-    const single = text.match(/(\d+(?:\.\d+)?)\s*(week|month|day)s?/i);
-    const toDays = (value, unit) => {
-      if (unit.startsWith("month")) return value * 30;
-      if (unit.startsWith("week")) return value * 7;
-      return value;
-    };
-    if (range) {
-      const maxVal = parseFloat(range[2]);
-      return Math.round(toDays(maxVal, range[3].toLowerCase()));
-    }
-    if (single) {
-      return Math.round(toDays(parseFloat(single[1]), single[2].toLowerCase()));
-    }
-    return null;
-  };
-
-  const getHarvestSpanDays = plant => {
-    const name = plant?.name?.toLowerCase() || "";
-    if (name.includes("tomato")) return 90;
-    if (name.includes("pepper") || name.includes("cucumber") || name.includes("eggplant")) return 75;
-    const harvestWindow = plant?.harvest_and_use?.harvest_window || "";
-    const frequency = plant?.harvest_and_use?.frequency || "";
-    const fromWindow = extractDurationDays(harvestWindow);
-    if (fromWindow) return fromWindow;
-    const fromFrequency = extractDurationDays(frequency);
-    if (fromFrequency) return fromFrequency;
-    if (/weeks|side shoots|multiple/i.test(frequency)) return 60;
-    return 30;
-  };
-
-  const buildStagesForTasks = (tasks, year) => {
-    const stagesByPlant = new Map();
-    const scheduleMap = new Map();
-    tasks.forEach(task => {
-      const key = task.scheduleKey || `${task.plant}||default`;
-      if (!scheduleMap.has(key)) scheduleMap.set(key, []);
-      scheduleMap.get(key).push(task);
-    });
-
-    scheduleMap.forEach(taskList => {
-      const plantName = taskList[0]?.plant;
-      if (!plantName) return;
-      const plant = data?.plants?.find(item => item.name === plantName);
-      const method = taskList[0]?.method;
-      const season = taskList[0]?.season || "spring";
-      const byTemplate = {};
-      taskList.forEach(task => {
-        if (!byTemplate[task.template]) byTemplate[task.template] = [];
-        byTemplate[task.template].push(task);
-      });
-
-      const pickDate = template => {
-        const items = byTemplate[template] || [];
-        if (!items.length) return null;
-        const sorted = items.map(t => t.dt).filter(Boolean).sort((a, b) => a - b);
-        return sorted[0] || null;
-      };
-
-      const seedStart = pickDate("seed_start_indoor");
-      const transplant = pickDate("transplant");
-      const directSow = pickDate("direct_sow");
-      const harvestDates = (byTemplate.harvest || []).map(t => t.dt).filter(Boolean).sort((a, b) => a - b);
-      const harvestStart = harvestDates[0] || null;
-      const harvestEnd = harvestDates.length ? harvestDates[harvestDates.length - 1] : null;
-      const yearEnd = new Date(year, 11, 31);
-      const plantStages = [];
-
-      const indoorWindow = parseDate(plant?.planting?.indoor_start_optional?.start)
-        || parseDate(plant?.planting?.primary?.indoor_start_window?.start);
-      const transplantWindow = parseDate(getPlantingWindowStart(plant, "transplant", season))
-        || parseDate(plant?.planting?.primary?.transplant_window?.start);
-      const sowWindow = parseDate(getPlantingWindowStart(plant, "direct_sow", season))
-        || parseDate(plant?.planting?.direct_sow_window?.start);
-
-      let fallbackTransplant = transplant || transplantWindow;
-      if (!fallbackTransplant && seedStart) {
-        fallbackTransplant = addDays(seedStart, 28);
-      }
-
-      let fallbackSow = directSow || sowWindow;
-      const indoorStart = seedStart || indoorWindow || (fallbackTransplant ? addDays(fallbackTransplant, -28) : null);
-
-      if (indoorStart && fallbackTransplant) {
-        plantStages.push({
-          key: "indoors",
-          start: clampDate(indoorStart, year),
-          end: clampDate(fallbackTransplant, year),
-        });
-      } else if (!indoorStart && !fallbackSow && fallbackTransplant) {
-        const derivedStart = addDays(fallbackTransplant, -28);
-        plantStages.push({
-          key: "indoors",
-          start: clampDate(derivedStart, year),
-          end: clampDate(fallbackTransplant, year),
-        });
-      }
-
-      if (fallbackTransplant && (method === "transplant" || !fallbackSow)) {
-        plantStages.push({
-          key: "transplant",
-          start: clampDate(fallbackTransplant, year),
-          end: clampDate(fallbackTransplant, year),
-        });
-      }
-
-      if (fallbackSow && (method === "direct_sow" || !fallbackTransplant)) {
-        plantStages.push({
-          key: "sow",
-          start: clampDate(fallbackSow, year),
-          end: clampDate(fallbackSow, year),
-        });
-      }
-
-      const growStart = (method === "transplant" ? fallbackTransplant : null) || (method === "direct_sow" ? fallbackSow : null) || fallbackTransplant || fallbackSow;
-      if (growStart) {
-        const growEnd = harvestStart || yearEnd;
-        if (growEnd >= growStart) {
-          plantStages.push({
-            key: "growing",
-            start: clampDate(growStart, year),
-            end: clampDate(growEnd, year),
-          });
-        }
-      }
-
-      if (harvestStart) {
-        const harvestSpan = getHarvestSpanDays(plant);
-        const spanEnd = addDays(harvestStart, harvestSpan);
-        const endDate = harvestEnd && harvestEnd > spanEnd ? harvestEnd : spanEnd;
-        plantStages.push({
-          key: "harvest",
-          start: clampDate(harvestStart, year),
-          end: clampDate(endDate, year),
-        });
-      }
-
-      if (!stagesByPlant.has(plantName)) {
-        stagesByPlant.set(plantName, []);
-      }
-      stagesByPlant.get(plantName).push({
-        label: `${plantName} (${season})`,
-        method,
-        season,
-        stages: plantStages,
-      });
-    });
-
-    const entries = [];
-    stagesByPlant.forEach(list => {
-      const ranges = list.map(entry => {
-        const start = entry.stages.reduce((min, stage) => (stage.start < min ? stage.start : min), entry.stages[0]?.start);
-        const end = entry.stages.reduce((max, stage) => (stage.end > max ? stage.end : max), entry.stages[0]?.end);
-        return { entry, start, end };
-      }).sort((a, b) => a.start - b.start);
-
-      const merged = [];
-      ranges.forEach(item => {
-        const last = merged[merged.length - 1];
-        if (!last || item.start > last.end) {
-          merged.push({
-            label: item.entry.label,
-            stages: [...item.entry.stages],
-            start: item.start,
-            end: item.end,
-          });
-          return;
-        }
-        last.stages = last.stages.concat(item.entry.stages);
-        if (item.end > last.end) last.end = item.end;
-      });
-
-      const baseLabel = list[0]?.label?.replace(/\s*\(.+\)$/, "") || list[0]?.entry?.label?.replace(/\s*\(.+\)$/, "");
-      merged.forEach(item => {
-        const label = merged.length === 1 ? baseLabel : item.label;
-        entries.push({
-          label,
-          stages: item.stages,
-        });
-      });
-    });
-    return entries;
-  };
-
   function rerender() {
     grid.innerHTML = "";
     const year = parseInt(yearSel.value, 10);
@@ -1342,7 +1345,7 @@ function renderCalendar(data, state, main) {
       .filter(t => t.dt && t.dt.getFullYear() === year)
       .filter(t => !FERTILIZER_TEMPLATES.has(t.template))
       .filter(t => !SOIL_PREP_TEMPLATES.has(t.template));
-    const stageEntries = buildStagesForTasks(tasks, year);
+    const stageEntries = buildStagesForTasks(tasks, year, data);
 
     if (!tasks.length) {
       grid.appendChild(el("div", "muted", "No tasks scheduled for this year with the current plan selections."));
