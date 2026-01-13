@@ -88,6 +88,23 @@ function formatDate(date) {
   return date.toISOString().slice(0, 10);
 }
 
+function getStageLabel(stageKey) {
+  switch (stageKey) {
+    case "indoors":
+      return "Plant Indoors";
+    case "transplant":
+      return "Transplant";
+    case "sow":
+      return "Sow";
+    case "growing":
+      return "Growing";
+    case "harvest":
+      return "Harvest";
+    default:
+      return "Pending";
+  }
+}
+
 function loadStoredJSON(key, fallback) {
   try {
     const raw = localStorage.getItem(key);
@@ -116,6 +133,7 @@ function getTaskDisplayName(template) {
 }
 
 function getTaskTitle(task) {
+  if (task.title && task.title !== task.template) return task.title;
   return getTaskDisplayName(task.template);
 }
 
@@ -297,6 +315,9 @@ function buildScheduleForPlan(plant, method, season, cycleIndex, extraShiftDays 
   const excludeForDirect = new Set(["seed_start_indoor", "harden_off", "transplant"]);
   const excludeForTransplant = new Set(["direct_sow"]);
 
+  const transplantTask = plan.find(task => task.template === "transplant");
+  const transplantDate = parseDate(transplantTask?.date_target || transplantTask?.start_date || transplantTask?.date);
+
   return plan
     .filter(task => {
       if (method === "direct_sow") return !excludeForDirect.has(task.template);
@@ -305,7 +326,11 @@ function buildScheduleForPlan(plant, method, season, cycleIndex, extraShiftDays 
     })
     .map(task => {
       const base = normalizeTask(task, plant.name);
-      const date = parseDate(base.date);
+      let date = parseDate(base.date);
+      if (task.template === "harden_off" && transplantDate) {
+        const duration = task.duration_days || 7;
+        date = addDays(transplantDate, -duration);
+      }
       if (!date) return null;
       const planned = addDays(date, baseShift);
       const adjusted = addDays(date, totalShift);
@@ -347,6 +372,20 @@ function collectPlannedTasks(data, state) {
   tasks = mergeTasks(tasks, data);
   applyDateOverrides(tasks, state);
   return tasks;
+}
+
+function getPlantStageStatus(plant, state, data) {
+  const year = new Date().getFullYear();
+  const tasks = collectPlannedTasks({ plants: [plant] }, state)
+    .filter(t => t.dt && t.dt.getFullYear() === year)
+    .filter(t => !FERTILIZER_TEMPLATES.has(t.template))
+    .filter(t => !SOIL_PREP_TEMPLATES.has(t.template));
+  const stages = buildStagesForTasks(tasks, year);
+  const today = new Date();
+  const match = stages.find(entry => entry.label.startsWith(plant.name));
+  if (!match) return "Pending";
+  const active = match.stages.find(stage => today >= stage.start && today <= stage.end);
+  return active ? getStageLabel(active.key) : "Pending";
 }
 
 function applyDateOverrides(tasks, state) {
@@ -697,11 +736,7 @@ function renderPlantList(data, state, main) {
     if (icon) nameRow.appendChild(icon);
     nameRow.appendChild(document.createTextNode(p.name));
     info.appendChild(nameRow);
-    if (p.site_requirements?.sun || p.site_requirements?.soil) {
-      const sun = p.site_requirements?.sun ? `Sun: ${p.site_requirements.sun}` : null;
-      const soil = p.site_requirements?.soil ? `Soil: ${p.site_requirements.soil}` : null;
-      info.appendChild(el("div", "row-meta", [sun, soil].filter(Boolean).join(" · ")));
-    }
+    info.appendChild(el("div", "row-meta", getPlantStageStatus(p, state, data)));
     top.appendChild(info);
     top.appendChild(el("span", "badge", p?.planting?.methods_supported?.join(" / ") || "plan"));
     row.appendChild(top);
@@ -837,7 +872,6 @@ function renderPlantDetail(plant, state, main, data) {
   seasonRow.appendChild(seasonOptions);
   planSection.appendChild(seasonRow);
 
-  planSection.appendChild(el("div", "muted", "Succession: single planting per season."));
   detail.appendChild(planSection);
 
   detail.appendChild(el("hr", "sep"));
@@ -1267,7 +1301,36 @@ function renderCalendar(data, state, main) {
 
     const entries = [];
     stagesByPlant.forEach(list => {
-      list.forEach(entry => entries.push(entry));
+      const ranges = list.map(entry => {
+        const start = entry.stages.reduce((min, stage) => (stage.start < min ? stage.start : min), entry.stages[0]?.start);
+        const end = entry.stages.reduce((max, stage) => (stage.end > max ? stage.end : max), entry.stages[0]?.end);
+        return { entry, start, end };
+      }).sort((a, b) => a.start - b.start);
+
+      const merged = [];
+      ranges.forEach(item => {
+        const last = merged[merged.length - 1];
+        if (!last || item.start > last.end) {
+          merged.push({
+            label: item.entry.label,
+            stages: [...item.entry.stages],
+            start: item.start,
+            end: item.end,
+          });
+          return;
+        }
+        last.stages = last.stages.concat(item.entry.stages);
+        if (item.end > last.end) last.end = item.end;
+      });
+
+      const baseLabel = list[0]?.label?.replace(/\s*\(.+\)$/, "") || list[0]?.entry?.label?.replace(/\s*\(.+\)$/, "");
+      merged.forEach(item => {
+        const label = merged.length === 1 ? baseLabel : item.label;
+        entries.push({
+          label,
+          stages: item.stages,
+        });
+      });
     });
     return entries;
   };
