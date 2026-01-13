@@ -1369,7 +1369,12 @@ function renderCalendar(data, state, main) {
 async function loadData() {
   const res = await fetch(DATA_URL, { cache: "no-store" });
   if (!res.ok) throw new Error(`Data fetch failed: ${res.status}`);
-  return res.json();
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    throw new Error(`Data parse failed: ${e.message}`);
+  }
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
