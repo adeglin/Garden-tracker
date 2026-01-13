@@ -4,6 +4,7 @@ const STORAGE_KEYS = {
   scheduleShifts: "garden_schedule_shifts_v1",
   taskCompletion: "garden_task_completion_v1",
   taskDateOverrides: "garden_task_date_overrides_v1",
+  plantPlans: "garden_plant_plans_v1",
 };
 
 const TEMPLATE_DISPLAY_NAMES = {
@@ -157,13 +158,31 @@ function getAvailableSeasons(plant) {
 function getPlantPlanDefaults(plant) {
   const methods = getAvailableMethods(plant);
   const seasons = getAvailableSeasons(plant);
-  const interval = getSuccessionIntervalDays(plant);
-  const cycles = interval ? { 1: true, 2: false, 3: false } : { 1: true };
+  const cycles = { 1: true };
   return {
     methods: Object.fromEntries(methods.map(m => [m, m === methods[0]])),
     seasons: Object.fromEntries([...seasons].map(s => [s, s === "spring"])),
     cycles,
   };
+}
+
+function loadPlantPlans() {
+  const raw = loadStoredJSON(STORAGE_KEYS.plantPlans, {});
+  const map = new Map();
+  Object.entries(raw).forEach(([name, plan]) => {
+    if (plan && typeof plan === "object") {
+      map.set(name, plan);
+    }
+  });
+  return map;
+}
+
+function savePlantPlans(state) {
+  const obj = {};
+  state.plantPlans.forEach((plan, name) => {
+    obj[name] = plan;
+  });
+  saveStoredJSON(STORAGE_KEYS.plantPlans, obj);
 }
 
 function getSuccessionIntervalDays(plant) {
@@ -678,7 +697,11 @@ function renderPlantList(data, state, main) {
     if (icon) nameRow.appendChild(icon);
     nameRow.appendChild(document.createTextNode(p.name));
     info.appendChild(nameRow);
-    info.appendChild(el("div", "row-meta", `${p.category || "Plant"} · ${p.species || "Unknown"}`));
+    if (p.site_requirements?.sun || p.site_requirements?.soil) {
+      const sun = p.site_requirements?.sun ? `Sun: ${p.site_requirements.sun}` : null;
+      const soil = p.site_requirements?.soil ? `Soil: ${p.site_requirements.soil}` : null;
+      info.appendChild(el("div", "row-meta", [sun, soil].filter(Boolean).join(" · ")));
+    }
     top.appendChild(info);
     top.appendChild(el("span", "badge", p?.planting?.methods_supported?.join(" / ") || "plan"));
     row.appendChild(top);
@@ -724,7 +747,11 @@ function renderPlantDetail(plant, state, main, data) {
   if (summaryIcon) summaryTitle.appendChild(summaryIcon);
   summaryTitle.appendChild(document.createTextNode(plant.name));
   summary.appendChild(summaryTitle);
-  summary.appendChild(el("div", "row-meta", `${plant.category || "Plant"} · ${plant.species || "Unknown"}`));
+  if (plant.site_requirements?.sun || plant.site_requirements?.soil) {
+    const sun = plant.site_requirements?.sun ? `Sun: ${plant.site_requirements.sun}` : null;
+    const soil = plant.site_requirements?.soil ? `Soil: ${plant.site_requirements.soil}` : null;
+    summary.appendChild(el("div", "row-meta", [sun, soil].filter(Boolean).join(" · ")));
+  }
   if (plant.site_requirements?.sun) {
     summary.appendChild(el("div", "small", `Sun: ${plant.site_requirements.sun}`));
   }
@@ -759,8 +786,15 @@ function renderPlantDetail(plant, state, main, data) {
       input.type = "checkbox";
       input.checked = Boolean(plan.methods[method]);
       input.addEventListener("change", () => {
-        plan.methods[method] = input.checked;
+        if (!input.checked) {
+          input.checked = true;
+          return;
+        }
+        availableMethods.forEach(other => {
+          plan.methods[other] = other === method;
+        });
         state.plantPlans.set(plant.name, { ...plan });
+        savePlantPlans(state);
         renderPlantDetail(plant, state, main, data);
         renderTodayTasks(window.__gardenData, state, main);
         renderUpcomingTasks(window.__gardenData, state, main);
@@ -789,6 +823,7 @@ function renderPlantDetail(plant, state, main, data) {
       input.addEventListener("change", () => {
         plan.seasons[season] = input.checked;
         state.plantPlans.set(plant.name, { ...plan });
+        savePlantPlans(state);
         renderPlantDetail(plant, state, main, data);
         renderTodayTasks(window.__gardenData, state, main);
         renderUpcomingTasks(window.__gardenData, state, main);
@@ -802,40 +837,7 @@ function renderPlantDetail(plant, state, main, data) {
   seasonRow.appendChild(seasonOptions);
   planSection.appendChild(seasonRow);
 
-  const cycleRow = el("div", "row");
-  cycleRow.appendChild(el("div", "row-title", "Successions"));
-  const cycleOptions = el("div", "row-actions");
-  const cycleKeys = Object.keys(plan.cycles || {}).map(Number).sort((a, b) => a - b);
-  if (cycleKeys.length <= 1) {
-    cycleOptions.appendChild(el("div", "muted", "Single planting"));
-  } else {
-    cycleKeys.forEach(cycle => {
-      const label = el("label", "toggle");
-      const input = el("input");
-      input.type = "checkbox";
-      input.checked = Boolean(plan.cycles[cycle]);
-      input.addEventListener("change", () => {
-        plan.cycles[cycle] = input.checked;
-        state.plantPlans.set(plant.name, { ...plan });
-        renderPlantDetail(plant, state, main, data);
-        renderTodayTasks(window.__gardenData, state, main);
-        renderUpcomingTasks(window.__gardenData, state, main);
-        renderCalendar(window.__gardenData, state, main);
-      });
-      label.appendChild(input);
-      label.appendChild(el("span", null, `Succession ${cycle}`));
-      cycleOptions.appendChild(label);
-    });
-  }
-  cycleRow.appendChild(cycleOptions);
-  planSection.appendChild(cycleRow);
-
-  const interval = getSuccessionIntervalDays(plant);
-  if (interval) {
-    planSection.appendChild(el("div", "muted", `Succession offset: ${interval} days between cycles.`));
-  } else {
-    planSection.appendChild(el("div", "muted", "This crop is typically planted once per season."));
-  }
+  planSection.appendChild(el("div", "muted", "Succession: single planting per season."));
   detail.appendChild(planSection);
 
   detail.appendChild(el("hr", "sep"));
@@ -1159,6 +1161,8 @@ function renderCalendar(data, state, main) {
       const plantName = taskList[0]?.plant;
       if (!plantName) return;
       const plant = data?.plants?.find(item => item.name === plantName);
+      const method = taskList[0]?.method;
+      const season = taskList[0]?.season || "spring";
       const byTemplate = {};
       taskList.forEach(task => {
         if (!byTemplate[task.template]) byTemplate[task.template] = [];
@@ -1180,8 +1184,6 @@ function renderCalendar(data, state, main) {
       const harvestEnd = harvestDates.length ? harvestDates[harvestDates.length - 1] : null;
       const yearEnd = new Date(year, 11, 31);
       const plantStages = [];
-      const method = taskList[0]?.method;
-      const season = taskList[0]?.season || "spring";
 
       const indoorWindow = parseDate(plant?.planting?.indoor_start_optional?.start)
         || parseDate(plant?.planting?.primary?.indoor_start_window?.start);
@@ -1255,10 +1257,19 @@ function renderCalendar(data, state, main) {
       if (!stagesByPlant.has(plantName)) {
         stagesByPlant.set(plantName, []);
       }
-      stagesByPlant.get(plantName).push(...plantStages);
+      stagesByPlant.get(plantName).push({
+        label: `${plantName} (${season})`,
+        method,
+        season,
+        stages: plantStages,
+      });
     });
 
-    return stagesByPlant;
+    const entries = [];
+    stagesByPlant.forEach(list => {
+      list.forEach(entry => entries.push(entry));
+    });
+    return entries;
   };
 
   function rerender() {
@@ -1268,7 +1279,7 @@ function renderCalendar(data, state, main) {
       .filter(t => t.dt && t.dt.getFullYear() === year)
       .filter(t => !FERTILIZER_TEMPLATES.has(t.template))
       .filter(t => !SOIL_PREP_TEMPLATES.has(t.template));
-    const stageMap = buildStagesForTasks(tasks, year);
+    const stageEntries = buildStagesForTasks(tasks, year);
 
     if (!tasks.length) {
       grid.appendChild(el("div", "muted", "No tasks scheduled for this year with the current plan selections."));
@@ -1286,12 +1297,11 @@ function renderCalendar(data, state, main) {
     });
     matrix.appendChild(header);
 
-    (data.plants || []).forEach(plant => {
+    stageEntries.forEach(entry => {
       const row = el("div", "cal-row");
-      row.appendChild(el("div", "cal-cell cal-label", plant.name));
+      row.appendChild(el("div", "cal-cell cal-label", entry.label));
       const slots = Array(24).fill(null);
-      const stages = stageMap.get(plant.name) || [];
-      stages.forEach(stage => {
+      entry.stages.forEach(stage => {
         fillSlots(slots, stage.start, stage.end, stage.key);
       });
       slots.forEach((stageKey, idx) => {
@@ -1363,7 +1373,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const main = document.querySelector("main");
     const state = {
       selectedPlant: null,
-      plantPlans: new Map(),
+      plantPlans: loadPlantPlans(),
       search: "",
       scheduleShifts: loadStoredJSON(STORAGE_KEYS.scheduleShifts, {}),
       taskNotes: loadStoredJSON(STORAGE_KEYS.taskNotes, {}),
@@ -1390,6 +1400,23 @@ document.addEventListener("DOMContentLoaded", async () => {
         renderPlantList(data, state, main);
       });
     }
+
+    (data.plants || []).forEach(plant => {
+      const defaults = getPlantPlanDefaults(plant);
+      const existing = state.plantPlans.get(plant.name);
+      if (existing) {
+        const merged = {
+          ...defaults,
+          ...existing,
+          methods: { ...defaults.methods, ...existing.methods },
+          seasons: { ...defaults.seasons, ...existing.seasons },
+          cycles: { 1: true },
+        };
+        state.plantPlans.set(plant.name, merged);
+      } else {
+        state.plantPlans.set(plant.name, defaults);
+      }
+    });
 
     renderPlantList(data, state, main);
     renderPlantDetail(null, state, main, data);
