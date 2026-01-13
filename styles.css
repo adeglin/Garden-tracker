@@ -150,7 +150,19 @@ body{
   gap: 12px;
 }
 @media (min-width: 900px){
-  .split{grid-template-columns: 1fr 1.3fr;}
+  .split{grid-template-columns: 1fr 2fr;}
+}
+.split > .card{
+  display:flex;
+  flex-direction:column;
+}
+#plants-list{
+  max-height: 70vh;
+  overflow:auto;
+}
+#plant-detail{
+  max-height: 70vh;
+  overflow:auto;
 }
 .grid{
   display:grid;
@@ -371,6 +383,13 @@ hr.sep{border:none; border-top:1px solid var(--border); margin: 10px 0}
   align-items:center;
   justify-content:center;
   height: 100%;
+}
+
+.date-header{
+  font-size:13px;
+  font-weight:600;
+  color: var(--text);
+  margin-top:12px;
 }
 .cal-dot{
   width: 8px;

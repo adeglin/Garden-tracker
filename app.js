@@ -115,6 +115,11 @@ function getTaskDisplayName(template) {
 }
 
 function getTaskTitle(task) {
+  return getTaskDisplayName(task.template);
+}
+
+function getTaskSubtitle(task) {
+  return task.plant || "Garden";
   const label = getTaskDisplayName(task.template);
   const plantLabel = task.plant || "Garden";
   return `${label} — ${plantLabel}`;
@@ -523,6 +528,7 @@ function buildTaskInstructionLines(task, plant, data) {
   return lines;
 }
 
+function renderTaskRow(task, state, data, onUpdate, options = {}) {
 function renderTaskRow(task, state, data, onUpdate) {
   const row = el("div", "row task-row");
   row.tabIndex = 0;
@@ -532,6 +538,23 @@ function renderTaskRow(task, state, data, onUpdate) {
   const top = el("div", "row-top");
   const info = el("div");
   info.appendChild(el("div", "row-title", getTaskTitle(task)));
+  info.appendChild(el("div", "row-meta", getTaskSubtitle(task)));
+  top.appendChild(info);
+
+  if (options.showBadge !== false) {
+    const badge = el("span", "badge", task.date);
+    if (task.dt) {
+      const now = new Date();
+      const startOfToday = new Date(now);
+      startOfToday.setHours(0, 0, 0, 0);
+      if (task.dt < startOfToday) {
+        badge.classList.add("overdue");
+      } else {
+        badge.classList.add("due");
+      }
+    }
+    top.appendChild(badge);
+  }
   info.appendChild(el("div", "row-meta", "Tap to expand for instructions and details."));
   top.appendChild(info);
 
@@ -727,7 +750,14 @@ function renderPlantDetail(plant, state, main, data) {
   if (plant.site_requirements?.soil_ph) {
     summary.appendChild(el("div", "small", `Soil pH: ${plant.site_requirements.soil_ph}`));
   }
+  if (plant.site_requirements?.soil) {
+    summary.appendChild(el("div", "small", `Soil: ${plant.site_requirements.soil}`));
+  }
+  if (plant.site_requirements?.container_suitability) {
+    summary.appendChild(el("div", "small", `Planters: ${plant.site_requirements.container_suitability}`));
+  }
   detail.appendChild(summary);
+  detail.scrollTop = 0;
 
   detail.appendChild(el("hr", "sep"));
 
@@ -880,6 +910,9 @@ function renderPlantDetail(plant, state, main, data) {
   addInfoBlock("Watering", plant.watering);
   addInfoBlock("Support & training", plant.support_and_training);
   addInfoBlock("Succession & rotation", plant.succession_and_rotation);
+  if (plant.succession_and_rotation?.rotation_notes?.length) {
+    addInfoBlock("Pairs well with", plant.succession_and_rotation.rotation_notes);
+  }
   addInfoBlock("Harvest & use", plant.harvest_and_use);
 
   if (plant.fertility_strategy?.length) {
@@ -953,8 +986,7 @@ function renderPlantDetail(plant, state, main, data) {
   const previewList = el("div", "list");
   const tasks = collectPlannedTasks({ plants: [plant] }, state)
     .filter(t => t.dt)
-    .sort((a, b) => a.dt - b.dt)
-    .slice(0, 5);
+    .sort((a, b) => a.dt - b.dt);
   if (!tasks.length) {
     previewList.appendChild(el("div", "muted", "No tasks match the current plan selections."));
   } else {
@@ -964,6 +996,7 @@ function renderPlantDetail(plant, state, main, data) {
         renderTodayTasks(window.__gardenData, state, main);
         renderUpcomingTasks(window.__gardenData, state, main);
         renderCalendar(window.__gardenData, state, main);
+      }, { showBadge: false }));
       }));
     });
   }
@@ -1026,6 +1059,21 @@ function renderUpcomingTasks(data, state, main) {
     root.appendChild(el("div", "muted", "No tasks scheduled for the selected window."));
     return;
   }
+  const grouped = new Map();
+  tasks.forEach(task => {
+    if (!grouped.has(task.date)) grouped.set(task.date, []);
+    grouped.get(task.date).push(task);
+  });
+
+  [...grouped.entries()].forEach(([date, group]) => {
+    root.appendChild(el("div", "date-header", date));
+    group.forEach(task => {
+      root.appendChild(renderTaskRow(task, state, data, () => {
+        renderTodayTasks(window.__gardenData, state, main);
+        renderUpcomingTasks(window.__gardenData, state, main);
+        renderCalendar(window.__gardenData, state, main);
+      }, { showBadge: false }));
+    });
 
   tasks.forEach(task => {
     root.appendChild(renderTaskRow(task, state, data, () => {
