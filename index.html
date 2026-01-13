@@ -106,7 +106,8 @@
             <select id="cal-year" class="select"></select>
           </div>
         </div>
-        <div class="muted">Month-by-month overview. Rows are plants; columns are months. Icons show key activities.</div>
+        <div class="muted">Half-month overview of planting stages. Expand tasks in Today/Upcoming for detailed instructions.</div>
+        <div id="calendar-legend" class="legend"></div>
         <div id="calendar-grid" style="margin-top:12px; overflow:auto"></div>
       </div>
     </section>
@@ -159,6 +160,20 @@
     <div class="muted">Tip: this is a PWA. Host these files (GitHub Pages is easiest) and install it to your home screen.</div>
   </footer>
 
+  <script>
+    window.addEventListener("error", (event) => {
+      const status = document.getElementById("data-status");
+      if (status && event?.message) {
+        status.textContent = `Error: ${event.message}`;
+      }
+    });
+    window.addEventListener("unhandledrejection", (event) => {
+      const status = document.getElementById("data-status");
+      if (status && event?.reason) {
+        status.textContent = `Error: ${event.reason}`;
+      }
+    });
+  </script>
   <script src="app.js"></script>
 </body>
 </html>
