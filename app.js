@@ -120,9 +120,6 @@ function getTaskTitle(task) {
 
 function getTaskSubtitle(task) {
   return task.plant || "Garden";
-  const label = getTaskDisplayName(task.template);
-  const plantLabel = task.plant || "Garden";
-  return `${label} — ${plantLabel}`;
 }
 
 function getPlantIcon(plant, sizeClass) {
@@ -529,7 +526,6 @@ function buildTaskInstructionLines(task, plant, data) {
 }
 
 function renderTaskRow(task, state, data, onUpdate, options = {}) {
-function renderTaskRow(task, state, data, onUpdate) {
   const row = el("div", "row task-row");
   row.tabIndex = 0;
   row.setAttribute("role", "button");
@@ -555,21 +551,6 @@ function renderTaskRow(task, state, data, onUpdate) {
     }
     top.appendChild(badge);
   }
-  info.appendChild(el("div", "row-meta", "Tap to expand for instructions and details."));
-  top.appendChild(info);
-
-  const badge = el("span", "badge", task.date);
-  if (task.dt) {
-    const now = new Date();
-    const startOfToday = new Date(now);
-    startOfToday.setHours(0, 0, 0, 0);
-    if (task.dt < startOfToday) {
-      badge.classList.add("overdue");
-    } else {
-      badge.classList.add("due");
-    }
-  }
-  top.appendChild(badge);
 
   const taskKey = makeTaskKey(task);
   const completeToggle = el("label", "toggle");
@@ -997,7 +978,6 @@ function renderPlantDetail(plant, state, main, data) {
         renderUpcomingTasks(window.__gardenData, state, main);
         renderCalendar(window.__gardenData, state, main);
       }, { showBadge: false }));
-      }));
     });
   }
   tasksPreview.appendChild(previewList);
@@ -1074,13 +1054,6 @@ function renderUpcomingTasks(data, state, main) {
         renderCalendar(window.__gardenData, state, main);
       }, { showBadge: false }));
     });
-
-  tasks.forEach(task => {
-    root.appendChild(renderTaskRow(task, state, data, () => {
-      renderTodayTasks(window.__gardenData, state, main);
-      renderUpcomingTasks(window.__gardenData, state, main);
-      renderCalendar(window.__gardenData, state, main);
-    }));
   });
 }
 
