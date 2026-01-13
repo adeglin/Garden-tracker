@@ -1,4 +1,4 @@
-const CACHE_NAME = "garden-tracker-v15";
+const CACHE_NAME = "garden-tracker-v16";
 
 const CORE = [
   "./",
